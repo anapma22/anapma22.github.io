@@ -23,8 +23,8 @@ email: anapma22@gmail.com
 
 description: >- # this means to ignore newlines until "baseurl:" 
   Graduada em Ciências e Tecnologia (2017.2).   
-  Engenheira de Telecomunicações (2020.2).  
-  Especialista em TI - Redes e Infraestrutura (2020.2).  
+  Graduanda em Engenheira de Telecomunicações (2020.2).  
+  Residente em TI - Redes e Infraestrutura (2020.2).  
 
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
