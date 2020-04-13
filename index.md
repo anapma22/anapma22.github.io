@@ -1,17 +1,24 @@
-# Dicas e tutoriais
+---
+# Feel free to add content and custom Front Matter to this file.
+# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
+#Referências para trabalhos futuros: https://davidwells.io/contact/ -- inserir parte de contato
+#https://jekyllrb.com/
 
-##### Qualquer feedback será muito bem vindo! 
+layout: home
+---
+# Sobre
 
-O objetivo desta página é compartilhar o conhecimento sobre algumas ferramentas, a partir de um acervo pessoal de algumas documentações.  A lista destas ferramentas está logo abaixo. 
+Sou Bacharela em Ciências e Tecnologia, e estou atualmente cursando Engenharia de Telecomunicações, ambos os cursos na UFRN. Além disso, sou pós graduanda de TI aplicada à área jurídica na JFRN. Também tenho a formação Técnica em Informática pelo IFRN.
 
-  - Meu nome é Ana Amarante
-  - Graduada em Ciências e Tecnologia.
-  - Discente de Engenharia de Telecomunicações.
-  - Residente de TI na área de Redes e Infraestrutura
-  
+Tive experiências nas áreas de suporte no IFRN, TRE-RN, UFRN, IPERN e SERPRO. 
+Na Lógica Sistemas, comecei a trabalhar com Docker, Zabbix e Grafana com o fim de gerenciar um sistema de monitoramento ativo com SNMP para provedores de internet. 
+Atualmente sou Residente em Redes e Infraestrutura na JFRN, trabalhamos com metodologia ágil, o Scrum. Mais informações podem ser vistas no site do projeto da [residência](https://residencia.jfrn.jus.br/).
 
-### Tecnologias que serão abordadas:
-[ ] Zabbix + Grafana  
-[ ] Freeradius  
-[ ] Kubernets  
+Busco me aprofundar na área de administração de redes e telecomunicações, tanto na parte científica quanto na experiência profissional em empresas. Atualmente estou estudando Docker, Freeradius, Kubernetes e as próximas ferramentas estudadas serão Terrafom e Ansible.
 
+O objetivo desta página é compartilhar o conhecimento sobre algumas experiências, a partir de um acervo pessoal de alguns apontamentos que tinha feito e estavam guardados.
+
+### Qualquer feedback será muito bem vindo! 
+
+***
+&nbsp;

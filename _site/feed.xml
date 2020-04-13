@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-04-12T22:42:03-03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Ana Amarante</title><subtitle>Graduada em Ciências e Tecnologia (2017.1).    Engenheira de Telecomunicações (2020.2).   Especialista em TI - Redes e Infraestrutura (2020.2).  </subtitle><entry><title type="html">Conceitos básicos do Kubernetes</title><link href="http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html" rel="alternate" type="text/html" title="Conceitos básicos do Kubernetes" /><published>2020-04-12T17:06:38-03:00</published><updated>2020-04-12T17:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-%20introdut%C3%B3rios</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html">&lt;h2 id=&quot;introdução&quot;&gt;Introdução&lt;/h2&gt;
+
+&lt;p&gt;Este documento foi desenvolvido durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/kubernetes_logo.png&quot; alt=&quot;Logotipo do kubernetes&quot; style=&quot;width:200px;height:190px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 1 - Logotipo do kubernetes. Fonte: kubernetes.io.&lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Primeiramente, na figura 1, podemos vê à logotipo do Kubernetes (conhecido também como K8s), que sugere um leme de um navio. Mas sabemos que um navio pode levar coisas mais variadas possíveis, porém em larga escala, seja lá o que for carregado dentro de um navio, está armazenado dentro de um container. Outra dica é que a palavra Kubernetes vem da palavra grega Kuvernetes, que representa a pessoa que pilota o navio.&lt;/p&gt;
+
+&lt;p&gt;Com a inferência correta, já sabemos que o Kubernetes é responsável por fazer a orquestração e gerenciamento de containers! É um sistema de orquestração open-source que automatiza a implantação, o dimensionamento e a gestão de aplicações em containers.&lt;/p&gt;
+
+&lt;p&gt;O Kubernetes faz o gerenciamento do cluster, que é composto por vários containers. O Docker é a tecnologia mais utilizada para  provisionar os containers O próprio Docker tem seu orquestrador, o Docker Swarm, porém ele não é tão maduro quanto o Kubernetes.&lt;/p&gt;
+
+&lt;h2 id=&quot;breve-história&quot;&gt;Breve história&lt;/h2&gt;
+&lt;p&gt;O K8s (trocadilho com o nome Kubernetes: k + 8 caracteres + s) é inscrito em GO, foi desenvolvido pela Google, para gerência dos serviços da G Suite. Em 2015 o Kubernetes foi doado para a “Cloud Native Computing foundation” e Linux Foundations, e se tornou um projeto Open Source, hoje é mantido pela comunidade. Isso é mais um incentivo a sua popularidade e grande utilização, visto que por já ser da comunidade, não fica restrito a nenhuma alteração drástica partindo da empresa que detivesse essa ferramenta.&lt;/p&gt;
+
+&lt;h2 id=&quot;estrutura-do-kubernetes&quot;&gt;Estrutura do Kubernetes&lt;/h2&gt;
+&lt;p&gt;Quando se implanta o Kubernetes, que é o &lt;strong&gt;deploy&lt;/strong&gt; (esse conceito será detalhado abaixo), você passa a ter um &lt;strong&gt;cluster&lt;/strong&gt;. Que é composto pelos &lt;strong&gt;nodes&lt;/strong&gt;: &lt;strong&gt;master&lt;/strong&gt; e os &lt;strong&gt;workers&lt;/strong&gt;. O master é responsável por controlar os nodes do Kubernetes e os nodes fazem as tarefas dentro dos containers. Cada cluster tem pelo menos um node de trabalho. Dentro dos nodes de trabalho ficam os &lt;strong&gt;pods&lt;/strong&gt;, que são os menores componentes do aplicativo, que podem ser criadas e gerenciadas no Kubernetes.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Pods: Menor unidade do K8s, pode conter um container e uma unidade de armazenamento, em alguns casos ainda contém mais de um container e a unidade de armazenamento, mas esse caso é raro, por serem voláteis. Todo pod tem um IP e id únicos. Eles podem ter diferentes estados:
+    &lt;ul&gt;
+      &lt;li&gt;
+        &lt;p&gt;Pending: Estado inicial do pod.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;Running: Em execução.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;Success: Pod concluiu a tarefa e morreu.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;Unknown: Estado não reconhecido, o linux retornou qualquer coisa diferente de 0.&lt;/p&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Dentro dos pods, temos os &lt;strong&gt;services&lt;/strong&gt;, que são uma maneira abstrata de expor uma aplicação em execução em um conjunto de pods como um serviço de rede.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Cluster
+    &lt;ul&gt;
+      &lt;li&gt;
+        &lt;p&gt;Master: Executa o Control Plane.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;Worker: Executa os containers que estão dentro dos pods.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;Node: Servidor que roda o K8s. Menor unidade de hardware de computação no Kubernetes.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;kubeadm: Automatiza parte do processo de criação do cluster.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;kubectl: Interface de linha de comando do K8s, ele opera o cluster gerenciando suas interações. Ainda temos o kubelet, mas ele será detalhado nos componentes do node.&lt;/p&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;O acesso aos clusters, é feito por meio do &lt;strong&gt;ingress&lt;/strong&gt;, que é uma coleção de regras de roteamento, que estabelecem como usuários externos acessam serviços em execução em um cluster Kubernetes.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;A rede no Kubernetes é configurada por meio de plugins que permitem criar redes virtuais ou rede de overlay. Eles criam túneis criptografados entre os nodes, que permitem que toda comunicação ocorra. Ou seja, um pod que está no node A consegue se comunicar com um pod no node B. Alguns desses plugins são os Flannel ou Weave.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Namespaces: Tem objetivo de organizar objetos no cluster através de uma divisão lógica.
+Por padrão, kubectl interage com o namespace padrão (default).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;control-plane-e-nodes&quot;&gt;Control Plane e Nodes&lt;/h3&gt;
+&lt;p&gt;O Kubernetes possui um  software conhecido como &lt;strong&gt;control plane&lt;/strong&gt;, nele é decido quando e onde executar os pods, além de gerenciar o roteamento do tráfego e escalar os pods de acordo com a utilização ou outras métricas definidas.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/Kubernetes_controlplane.png&quot; alt=&quot; Control Plane&quot; style=&quot;width:750px;height:400px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 2 - Estrututura do kubernetes. Fonte: kubernetes.io.&lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Os componentes do Control Plane tomam decisões gerais sobre o cluster, além de detectar e responder a eventos do cluster, como iniciar um novo pod quando uma réplica de um &lt;strong&gt;deployment&lt;/strong&gt; não correta.Um deployment é uma implantação de uma aplicação dentro do Kubernetes, por exemplo um deploy do ngnix, vai subir um ngnix.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Componentes do Control Plane
+    &lt;ul&gt;
+      &lt;li&gt;
+        &lt;p&gt;etcd: É uma base de dados de chave valor, que armazena os dados de configuração do cluster e o estado do cluster.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;kube-apiserver: Fornece API kubernetes usando Jason, baseado em REST. Os estados de objetos da API são armazenados no etcd, e o kubectl usa o kube-api-server para se comunicar com o cluster.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;kube-controller-manager: Controles responsáveis por monitorar continuamente o estado do cluster por meio da apiserver, além de fazer as mudanças do estado atual do sistema para o desejado. Alguns exemplos são o replication controller, endpoints controller, namespace controller, and serviceaccounts controller.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;cloud-controller-manager: Um daemon que incorpora loops de controle específicos da nuvem. Esses loops de controle específicos da nuvem estavam originalmente no kube-controller-manager. Desde que os provedores de nuvem se desenvolvem em um ritmo diferente do Kubernetes, o binário cloud-controller-manager permite que esses provedores abstrariam o código que seria para o kube-controller-manager.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;kube-scheduler: Responsável por executar as tarefas de agendamento, como execução de containers nos nodes com base na disponibilidade de recursos. Quando um pod está no estado pending, quem decide para onde o pod irá será este componente. É possível interferir nesta política, por exemplo indicando a máquina para onde os pods devem ir preferencialmente.&lt;/p&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Componentes dos Nodes
+    &lt;ul&gt;
+      &lt;li&gt;
+        &lt;p&gt;kube-proxy: Quando se cria pods, ele pode ir pra qualquer máquina e um pod precisa se comunicar com o outro, ou seja, é necessário a comunicação entre os nodes. O kube-proxy é responsável por lidar com as regras de firewall.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;kubelet: Faz a interface com o docker, atua como agente em cada node. Lida com a execução dos pods. Sempre conversa com o kube-apiserver.&lt;/p&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt; &lt;/p&gt;
+
+&lt;h4 id=&quot;referências&quot;&gt;Referências&lt;/h4&gt;
+&lt;ol&gt;
+  &lt;li&gt;Tudo o que você precisa saber sobre Kubernetes – Parte 0. iMasters.  Disponível em: &lt;a href=&quot;https://imasters.com.br/desenvolvimento/tudo-o-que-voce-precisa-saber-sobre-ku,bernetes-parte-01&quot;&gt;https://imasters.com.br/desenvolvimento/tudo-o-que-voce-precisa-saber-sobre-ku,bernetes-parte-01&lt;/a&gt;. Acessado em 23 de fev. 2020.&lt;/li&gt;
+  &lt;li&gt;What is Kubernetes. Kubernetes. Disponível em: &lt;a href=&quot;https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/&quot;&gt;https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/&lt;/a&gt;. Acessado em 23 de fev. 2020.&lt;/li&gt;
+  &lt;li&gt;Kubernetes Components. Kubernetes. Disponível em: &lt;a href=&quot;https://kubernetes.io/docs/concepts/overview/components/&quot;&gt;https://kubernetes.io/docs/concepts/overview/components/&lt;/a&gt;. Acessado em 23 de fev. 2020.&lt;/li&gt;
+  &lt;li&gt;Alta disponibilidade com Kubernetes na prática. Tech@Grupo ZAP. Disponível em: &lt;a href=&quot;https://medium.com/tech-grupozap/alta-disponibilidade-com-kubernetes-na-pr%C3%A1tica-b9cf4261d2f7&quot;&gt;https://medium.com/tech-grupozap/alta-disponibilidade-com-kubernetes-na-pr%C3%A1tica-b9cf4261d2f7&lt;/a&gt;. Acessado em 23 de fev. 2020.&lt;/li&gt;
+  &lt;li&gt;Kubernetes na AWS. AWS. Disponível em: &lt;a href=&quot;https://aws.amazon.com/pt/kubernetes/&quot;&gt;https://aws.amazon.com/pt/kubernetes/&lt;/a&gt;. Acessado em 23 de fev. 2020.&lt;/li&gt;
+&lt;/ol&gt;</content><author><name></name></author><summary type="html">Introdução</summary></entry></feed>
