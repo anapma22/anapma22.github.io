@@ -88,6 +88,7 @@ Agora, veremos os componentes dos nodes:
 
 
 Para que o post não fique muito longo, não foram apresentados mais conceitos. Eles são introdutórios, porém importantes para entender todo o resto do Kubernetes!
+
 &nbsp;
 
 #### Referências
