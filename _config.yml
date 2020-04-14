@@ -27,7 +27,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   Residente em TI - Redes e Infraestrutura.  
 
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://anapma22.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 linkedin_username: anapma22
 github_username: anapma22
 
@@ -35,6 +35,13 @@ github_username: anapma22
 theme: minima
 plugins:
   - jekyll-feed
+
+
+comments:
+  provider: "disqus"
+disqus:
+  shortname: anapma22-github-io
+
 
 # Exclude from processing.
 # The following items will not be processed, by default.
