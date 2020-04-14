@@ -197,3 +197,5 @@ table td { border: 1px solid #e8e8e8; }
 
 /** Site header -  site-nav */
 a.page-link { color: #111; line-height: 1; display: table-row; font-size: 15px; margin-right: 5px; margin-bottom: 5px; }
+
+.footer-col-3 { width: -webkit-calc(45% - (30px / 2)); width: calc(45% - (75px / 2)); }

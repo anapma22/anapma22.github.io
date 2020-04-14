@@ -23,7 +23,7 @@ email: anapma22@gmail.com
 
 description: >- # this means to ignore newlines until "baseurl:" 
   Bacharel em Ciências e Tecnologia.   
-  Graduanda em Engenharia de Telecomunicações.   
+  Graduanda em Eng. de Telecomunicações.    
   Residente em TI - Redes e Infraestrutura.  
 
 baseurl: "" # the subpath of your site, e.g. /blog
