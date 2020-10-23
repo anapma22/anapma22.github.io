@@ -24,12 +24,13 @@ email: anapma22@gmail.com
 description: >- # this means to ignore newlines until "baseurl:" 
   Bacharel em Ciências e Tecnologia.   
   Graduanda em Eng. de Telecomunicações.    
-  Residente em TI - Redes e Infraestrutura.  
+  Especialista de TI - Redes e Infraestrutura.  
 
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://anapma22.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 linkedin_username: anapma22
 github_username: anapma22
+dockerhub_username: anapma22
 
 # Build settings
 theme: minima

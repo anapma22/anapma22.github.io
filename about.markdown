@@ -4,10 +4,9 @@ title: About
 permalink: /about/
 ---
 - Graduada em Ciências e Tecnologia.  
-- Engenheira de Telecomunicações.  
-      Previsão de finalização: 2020.2.  
+- Estudante de Telecomunicações.  
 - Especialista em TI - Redes e Infraestrutura.  
-      Previsão de finalização: 2020.2.  
+      Previsão de finalização: Outubro de 2020.  
 
 
 &nbsp;
