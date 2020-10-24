@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Instalação do Kubernetes"
-date:   2020-10-20 17:06:38 -0300
+date:   2020-10-20 20:06:38 -0300
 categories: jekyll update
 ---
 
