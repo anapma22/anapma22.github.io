@@ -3,9 +3,10 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
-<title>Tutorial de como instalar o minikube em uma instância do google cloud | Ana Amarante</title>
+<title>Instalar o minikube em uma instância Gcloud | Ana Amarante</title>
 <meta name="generator" content="Jekyll v3.8.5" />
-<meta property="og:title" content="Tutorial de como instalar o minikube em uma instância do google cloud" />
+<meta property="og:title" content="Instalar o minikube em uma instância Gcloud" />
+<meta name="author" content="Ana Amarante" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino." />
 <meta property="og:description" content="Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino." />
@@ -15,7 +16,7 @@
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-10-20T17:06:38-03:00" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube.html"},"headline":"Tutorial de como instalar o minikube em uma instância do google cloud","dateModified":"2020-10-20T17:06:38-03:00","datePublished":"2020-10-20T17:06:38-03:00","description":"Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.","url":"http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube.html","@context":"https://schema.org"}</script>
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube.html"},"author":{"@type":"Person","name":"Ana Amarante"},"headline":"Instalar o minikube em uma instância Gcloud","dateModified":"2020-10-20T17:06:38-03:00","datePublished":"2020-10-20T17:06:38-03:00","description":"Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.","url":"http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube.html","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Ana Amarante" /><!-- Favicon head tag -->
     <link rel="icon" type="imagem/png" href="/images/favicon.png">
@@ -32,7 +33,7 @@
           </span>
         </label>
 
-        <div class="trigger"><a class="page-link " href="/jekyll/update/2020/10/20/K8s-Minikube.html">Tutorial de como instalar o minikube em uma instância do google cloud</a><a class="page-link " href="/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html">Conceitos básicos do Kubernetes</a></div>
+        <div class="trigger"><a class="page-link " href="/jekyll/update/2020/10/20/K8s-Minikube.html">Instalar o minikube em uma instância Gcloud</a><a class="page-link " href="/jekyll/update/2020/10/20/K8s-Instalacao.html">Instalação do Kubernetes</a><a class="page-link " href="/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html">Conceitos básicos do Kubernetes</a></div>
 
       </nav></div>
 </header>
@@ -41,7 +42,7 @@
         <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
-    <h1 class="post-title p-name" itemprop="name headline">Tutorial de como instalar o minikube em uma instância do google cloud</h1>
+    <h1 class="post-title p-name" itemprop="name headline">Instalar o minikube em uma instância Gcloud</h1>
     <p class="post-meta">
       <time class="dt-published" datetime="2020-10-20T17:06:38-03:00" itemprop="datePublished">Oct 20, 2020
       </time></p>
@@ -59,7 +60,7 @@ Este tutorial abordará desde o início a criação do projeto na Google Cloud P
   <li>Instalação do kubectl</li>
   <li>Instalação do minikube</li>
   <li>Deploy</li>
-  <li>Fontes</li>
+  <li>Referências</li>
 </ol>
 
 <h2 id="definição-teórica">Definição teórica</h2>
@@ -141,7 +142,7 @@ Este tutorial abordará desde o início a criação do projeto na Google Cloud P
     </ul>
     <p align="center">
  <img src="/images/minikube_1.png" alt="Saída do comando para verificação do kubectl" style="width:900px;height:75px;" />
- <figcaption align="center">Figura 2 - Saída do comando para verificação do kubectl. Fonte: Autoria própria </figcaption>
+ <figcaption align="center">Figura 2 - Saída do comando para verificação do kubectl. Fonte: Autoria própia </figcaption>
  </p>
   </li>
 </ol>
@@ -198,13 +199,13 @@ Execute o seguinte comando no seu terminal para concluir a criação do cluster,
     </ul>
     <p align="center">
 <img src="/images/minikube_2.png" alt="Saída esperada do comando para verificação do minikube" style="width:300px;height:100px;" />
-<figcaption align="center">Figura 3 - Saída esperada do comando para verificação do minikube. Fonte: Autoria própria </figcaption>
+<figcaption align="center">Figura 3 - Saída esperada do comando para verificação do minikube. Fonte: Autoria própia </figcaption>
 </p>
   </li>
   <li>Como já foi dito o minikube simula um cluster real de um único nó, é possível vê esse comportamento por meio do comando $kubectl get nodes. A saída deve ser conforme está mostrado abaixo.
     <p align="center">
 <img src="/images/minikube_3.png" alt="Saída esperada do comando para verificação de nodes do kubernetes" style="width:290px;height:70px;" />
-<figcaption align="center">Figura 4 - Saída esperada do comando para verificação de nodes do kubernetes. Fonte: Autoria própria </figcaption>
+<figcaption align="center">Figura 4 - Saída esperada do comando para verificação de nodes do kubernetes. Fonte: Autoria própia </figcaption>
 </p>
   </li>
 </ol>
@@ -236,7 +237,7 @@ image: ngnix
   <li>Vamos verificar o deployment, por meio do comando $kubectl get deployment. A saída deve ser similar a mostrada abaixo:
     <p align="center">
 <img src="/images/minikube_4.png" alt="Saída esperada da verificação do deployment" style="width:320px;height:60px;" />
-<figcaption align="center">Figura 5 - Saída esperada da verificação do deployment. Fonte: Autoria própria </figcaption>
+<figcaption align="center">Figura 5 - Saída esperada da verificação do deployment. Fonte: Autoria própia </figcaption>
 </p>
   </li>
   <li>Verificar os pods:
@@ -247,7 +248,7 @@ image: ngnix
     </ul>
     <p align="center">
 <img src="/images/minikube_5.png" alt="Saída esperada da verificação dos pods" style="width:400px;height:70px;" />
-<figcaption align="center">Figura6 - Saída esperada da verificação dos pods. Fonte: Autoria própria </figcaption>
+<figcaption align="center">Figura6 - Saída esperada da verificação dos pods. Fonte: Autoria própia </figcaption>
 </p>
   </li>
 </ol>

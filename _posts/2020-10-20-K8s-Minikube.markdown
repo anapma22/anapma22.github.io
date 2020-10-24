@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Tutorial de como instalar o minikube em uma instância do google cloud"
+title:  "Instalar o minikube em uma instância Gcloud"
 date:   2020-10-20 17:06:38 -0300
 categories: jekyll update
 ---
@@ -15,7 +15,7 @@ Este tutorial abordará desde o início a criação do projeto na Google Cloud P
 4. Instalação do kubectl
 5. Instalação do minikube 
 6. Deploy
-7. Fontes
+7. Referências
 
 ## Definição teórica
 Mas afinal, o que é minikube?
@@ -78,7 +78,7 @@ Caso não veja esse menu ele está oculto, clique nas três barras no canto supe
     * A saída esperada está mostrada abaixo:
     <p align="center">
     <img src="/images/minikube_1.png" alt="Saída do comando para verificação do kubectl" style="width:900px;height:75px;"/>
-    <figcaption align="center">Figura 2 - Saída do comando para verificação do kubectl. Fonte: Autoria própria </figcaption>
+    <figcaption align="center">Figura 2 - Saída do comando para verificação do kubectl. Fonte: Autoria própia </figcaption>
     </p>
 
 
@@ -131,12 +131,12 @@ Execute o seguinte comando no seu terminal para concluir a criação do cluster,
     * A saída esperada está mostrada abaixo:
     <p align="center">
     <img src="/images/minikube_2.png" alt="Saída esperada do comando para verificação do minikube" style="width:300px;height:100px;"/>
-    <figcaption align="center">Figura 3 - Saída esperada do comando para verificação do minikube. Fonte: Autoria própria </figcaption>
+    <figcaption align="center">Figura 3 - Saída esperada do comando para verificação do minikube. Fonte: Autoria própia </figcaption>
     </p>
 20. Como já foi dito o minikube simula um cluster real de um único nó, é possível vê esse comportamento por meio do comando $kubectl get nodes. A saída deve ser conforme está mostrado abaixo.
     <p align="center">
     <img src="/images/minikube_3.png" alt="Saída esperada do comando para verificação de nodes do kubernetes" style="width:290px;height:70px;"/>
-    <figcaption align="center">Figura 4 - Saída esperada do comando para verificação de nodes do kubernetes. Fonte: Autoria própria </figcaption>
+    <figcaption align="center">Figura 4 - Saída esperada do comando para verificação de nodes do kubernetes. Fonte: Autoria própia </figcaption>
     </p>
 
 ## Deployment 
@@ -159,7 +159,7 @@ spec:
 22. Vamos verificar o deployment, por meio do comando $kubectl get deployment. A saída deve ser similar a mostrada abaixo:
     <p align="center">
     <img src="/images/minikube_4.png" alt="Saída esperada da verificação do deployment" style="width:320px;height:60px;"/>
-    <figcaption align="center">Figura 5 - Saída esperada da verificação do deployment. Fonte: Autoria própria </figcaption>
+    <figcaption align="center">Figura 5 - Saída esperada da verificação do deployment. Fonte: Autoria própia </figcaption>
     </p>
 23. Verificar os pods: 
     ``` 
@@ -168,7 +168,7 @@ spec:
     * A saída esperada está mostrada abaixo:
     <p align="center">
     <img src="/images/minikube_5.png" alt="Saída esperada da verificação dos pods" style="width:400px;height:70px;"/>
-    <figcaption align="center">Figura6 - Saída esperada da verificação dos pods. Fonte: Autoria própria </figcaption>
+    <figcaption align="center">Figura6 - Saída esperada da verificação dos pods. Fonte: Autoria própia </figcaption>
     </p>    
 
 &nbsp;

@@ -1,4 +1,292 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-10-24T02:08:54-03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Ana Amarante</title><subtitle>Bacharel em Ciências e Tecnologia.    Graduanda em Eng. de Telecomunicações.     Especialista de TI - Redes e Infraestrutura.  </subtitle><entry><title type="html">Tutorial de como instalar o minikube em uma instância do google cloud</title><link href="http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube.html" rel="alternate" type="text/html" title="Tutorial de como instalar o minikube em uma instância do google cloud" /><published>2020-10-20T17:06:38-03:00</published><updated>2020-10-20T17:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube.html">&lt;p&gt;Este documento foi desenvolvido em &lt;strong&gt;março de 2020&lt;/strong&gt;, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-10-24T15:01:57-03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Ana Amarante</title><subtitle>Bacharel em Ciências e Tecnologia.    Graduanda em Eng. de Telecomunicações.     Especialista de TI - Redes e Infraestrutura.  </subtitle><author><name>Ana Amarante</name></author><entry><title type="html">Instalação do Kubernetes</title><link href="http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao.html" rel="alternate" type="text/html" title="Instalação do Kubernetes" /><published>2020-10-20T17:06:38-03:00</published><updated>2020-10-20T17:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao.html">&lt;p&gt;Este documento foi desenvolvido em &lt;strong&gt;março de 2020&lt;/strong&gt;, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.&lt;/p&gt;
+
+&lt;p&gt;O objetivo deste tutorial é a instalação do Kubernetes.&lt;/p&gt;
+
+&lt;p&gt;Este tutorial abordará os tópicos listados abaixo:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Criação das instâncias&lt;/li&gt;
+  &lt;li&gt;Container runtimes  - Docker&lt;/li&gt;
+  &lt;li&gt;Iniciando Clusters com o kubeadm&lt;/li&gt;
+  &lt;li&gt;Comandos interessantes&lt;/li&gt;
+  &lt;li&gt;Referências&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;criação-das-instâncias&quot;&gt;Criação das instâncias&lt;/h2&gt;
+
+&lt;p&gt;Foram criadas três máquinas, onde uma será o master e as outras duas os workers.
+Todas elas com 2vCPU e o centOS7.
+Para facilitar o trabalho, em casos de comandos repetidos usamos o tilix para digitar nos três terminais de uma vez.
+Todas foram logadas como root.&lt;/p&gt;
+
+&lt;h2 id=&quot;container-runtimes----docker&quot;&gt;Container runtimes  - Docker&lt;/h2&gt;
+
+&lt;p&gt;Para usar os containers nos pods, o K8s usa alguns Container runtimes, em nosso caso será o Docker, então, vamos para sua instalação. 
+&lt;strong&gt;Esse processo deve ser feito em todas as máquinas!&lt;/strong&gt;
+Logue como root: sudo su -&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Install Docker CE
+## Set up the repository
+### Install required packages.
+yum install -y yum-utils device-mapper-persistent-data lvm2
+
+### Add Docker repository.
+yum-config-manager --add-repo \
+  https://download.docker.com/linux/centos/docker-ce.repo
+
+## Install Docker CE.
+yum update -y &amp;amp;&amp;amp; yum install -y \
+  containerd.io-1.2.10 \
+  docker-ce-19.03.4 \
+  docker-ce-cli-19.03.4
+
+## Create /etc/docker directory.
+mkdir /etc/docker
+
+# Setup daemon.
+cat &amp;gt; /etc/docker/daemon.json &amp;lt;&amp;lt;EOF
+{
+  &quot;exec-opts&quot;: [&quot;native.cgroupdriver=systemd&quot;],
+  &quot;log-driver&quot;: &quot;json-file&quot;,
+  &quot;log-opts&quot;: {
+    &quot;max-size&quot;: &quot;100m&quot;
+  },
+  &quot;storage-driver&quot;: &quot;overlay2&quot;,
+  &quot;storage-opts&quot;: [
+    &quot;overlay2.override_kernel_check=true&quot;
+  ]
+}
+EOF
+
+mkdir -p /etc/systemd/system/docker.service.d
+
+# Restart Docker
+systemctl daemon-reload
+
+systemctl restart docker
+
+systemctl enable docker
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;iniciando-clusters-com-o-kubeadm&quot;&gt;Iniciando Clusters com o kubeadm&lt;/h2&gt;
+
+&lt;p&gt;Como já foi dito nos outros documentos, o kubeadm  automatiza parte do processo de criação do cluster.&lt;/p&gt;
+
+&lt;p&gt;Como estamos trabalhando em um laboratório para ambiente de produção, iremos parar e desabilitar o firewalld. Caso você esteja em um ambiente de produção real é importante rever a documentação deste serviço para que ele fique habilitado e não abra falhas de segurança na sua implementação.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Parando o firewalld:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;systemctl stop firewalld
+systemctl disable firewalld
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Portas que devem estar liberadas:
+    &lt;ul&gt;
+      &lt;li&gt;Master: 6443*, 2379-2380, 10250, 10251 e 10252 .&lt;/li&gt;
+      &lt;li&gt;Workers: 10250 e 30000-32767.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;instalação-do-kubeadm-kubelet-and-kubectl&quot;&gt;Instalação do kubeadm, kubelet and kubectl&lt;/h3&gt;
+&lt;p&gt;Como dito acima, o &lt;strong&gt;kubeadm&lt;/strong&gt; automatiza parte do processo de criação do cluster. O &lt;strong&gt;kubelet&lt;/strong&gt; faz a interface com o docker, atua como agente em cada node e o &lt;strong&gt;kubectl&lt;/strong&gt; é a interface de linha de comando do K8s.
+&lt;strong&gt;Esse processo deve ser feito em todas as máquinas!&lt;/strong&gt;
+É necessário definir o SELinux no modo permissivo executando os comando abaixo. Isso irá acontecer até que o suporte ao SELinux seja aprimorado no kubelet.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cat &amp;lt;&amp;lt;EOF &amp;gt; /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+
+# Set SELinux in permissive mode (effectively disabling it)
+setenforce 0
+sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+systemctl enable --now kubelet
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Alguns usuários do RHEL / CentOS 7 relataram problemas com o tráfego sendo roteado incorretamente devido ao desvio do iptables. Você deve garantir que net.bridge.bridge-nf-call-iptables esteja definido como 1 na sua configuração sysctl, por exemplo:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cat &amp;lt;&amp;lt;EOF &amp;gt; /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sysctl --system
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Para ter certeza que o módulo br_netfilter foi um módulo carregado no kernerl, utilizae o lsmod que é um comando para sistemas operacionais Linux que exibe quais módulos carregáveis do kernel estão atualmente carregados.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;lsmod | grep br_netfilter
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Para que você fique com a versão mais atualizada do kubeadm, rode:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;yum update
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Aqui, caso seja mostrado alguma atualização do docker, você não deve marcar para atualizar os pacotes: &lt;strong&gt;docker-ce, docker-ce-cli ou containerd.io&lt;/strong&gt;. O repositório do docker atualiza mais rápido do que o do kubernetes, logo, não se deve ter a versão mais atualizada do docker pois o K8s pode não suportar.&lt;/p&gt;
+
+&lt;h3 id=&quot;creating-a-single-control-plane-cluster-with-kubeadm&quot;&gt;Creating a single control-plane cluster with kubeadm&lt;/h3&gt;
+&lt;p&gt;Os objetivos desta seção serão: Instalar um cluster Kubernetes com control-plane e instalar um puglin de rede usada para que os pods possam se comunicar entre si.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Esse processo  SÓ deve ser feito no MASTER! Apenas ele tem o Control Plane.&lt;/strong&gt;
+Iniciar o control-plane node:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubeadm init
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Caso você use mais de uma interface de rede, é possível setar qual a interface você quer que seja usada nesta operação:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubeadm init --apiserver-advertise-address $(hostname -i)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Note, os dois comandos são equivalentes caso você tenha apenas uma interface de rede!
+A saída deste comando (kubeadmn init) deve ser similar a mostrada abaixo:&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/insk8s_1.png&quot; alt=&quot;Saída esperada do kubeadm init&quot; style=&quot;width:650px;height:250px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 1 - Saída esperada do kubeadm init. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;A partir de agora, você tem duas opções para fazer iniciar seu cluster:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Como um usuário comum.
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Como root.
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export KUBECONFIG=/etc/kubernetes/admin.conf
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;p&gt;O kubeadm join… mostrado acima, é o comando utilizado para ingressar seus workers no seu cluster.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Na parte de rede, existem plugins que permitem criar redes virtuais ou rede de overlay. Eles criam túneis entre os nodes, eles permitem que um pod que está no node A consiga se comunicar com um pode no node B, por exemplo.&lt;/p&gt;
+
+&lt;p&gt;Na documentação oficial, vimos alguns dos diferentes plugins disponíveis. Aqui foi usado o Weave, conforme está mostrado abaixo:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl apply -f &quot;https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Para passar o tráfego IPv4 para as cadeias de iptables, se faz necessário:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sysctl net.bridge.bridge-nf-call-iptables=1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Depois que o pod network foi instalado, você pode confirmar se o pod CoreDNS está Running na saída do:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; kubectl get pods --all-namespaces
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/insk8s_2.png&quot; alt=&quot;Saída esperada do kubectl get pods --all-namespaces (com alguns pods iniciando)&quot; style=&quot;width:620px;height:210px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 2 - Saída esperada do kubectl get pods --all-namespaces (com alguns pods iniciando). Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Como mostrado na Figura 2, assim que se iniciam os pods ficam no status Pending para depois passar para Running.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/insk8s_3.png&quot; alt=&quot;Saída esperada do kubectl get pods --all-namespaces (com todos os pods prontos)&quot; style=&quot;width:650px;height:220px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 3 - Saída esperada do kubectl get pods --all-namespaces (com todos os pods prontos). Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Após todos subirem corretamente, você pode verificar que os nodes.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl get nodes
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/insk8s_4.png&quot; alt=&quot;Saída esperada do kubectl get nodes&quot; style=&quot;width:300px;height:80px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 4.1 - Saída esperada do kubectl get nodes, você deverá ver essa! Depois que adicionar os nodes, verá a Figura 4.2. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/insk8s_5.png&quot; alt=&quot;Saída esperada do kubectl get nodes&quot; style=&quot;width:320px;height:100px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 4.2 - Saída esperada do kubectl get nodes com os workers adicionais. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;h3 id=&quot;joining-your-nodes&quot;&gt;Joining your nodes&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Esse processo deve ser feito nos workers!&lt;/strong&gt;
+Aqui, você já deu o comando kubeadm init e já tem a saída, que inclue o kubeadm join, como no &lt;strong&gt;EXEMPLO&lt;/strong&gt; abaixo. Se atente que você deve usar o kubeadm join que você obteve, não o do exemplo.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; kubeadm join 10.128.0.3:6443 --token c3y122.omruf7ogbo4x34d7 \
+    --discovery-token-ca-cert-hash sha256:4541d7661bdf610cca14500f00425de412e7773e8962c3ac0b218717bacce88c
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Após pegar este comando, você deve inseri-lo nas instâncias que serão seus workers.&lt;/p&gt;
+
+&lt;p&gt;Abaixo é mostrado um exemplo dessa inserção, porém temos como retorno o seguinte erro: [ERROR FileContent–proc-sys-net-ipv4-ip_forward]: /proc/sys/net/ipv4/ip_forward contents are not set to 1.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/insk8s_6.png&quot; alt=&quot;Erro do kubeadm join&quot; style=&quot;width:1000px;height:115px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 5 - Erro do kubeadm join. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Após esse erro foi verificado que kubelet não estava funcionando e não foi possível reiniciá-lo.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/insk8s_7.png&quot; alt=&quot;Service kubelet não iniciado&quot; style=&quot;width:680px;height:270px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 6 - Service kubelet não iniciado. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Para solucionar foi necessário restartar o docker nos workers:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; systemctl restart docker 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Depois disso, o kubeadm join funcionou como o esperado e o kubelet subiu automaticamente.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/insk8s_8.png&quot; alt=&quot;Service kubelet iniciado&quot; style=&quot;width:1000px;height:350px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 7 - Service kubelet iniciado. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Caso você não tenho mais o token, é possível gerar outro. Todos os comandos relacionados a listagem/geração de tokens são feitas no master.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; kubeadm token list 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Os tokens expiram após 24 horas, caso você deseje gerar outro token:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubeadm token create 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;A saída será semelhante a isto:  5didvk.d09sbcov8ph2amjw
+Caso você não tenha o valor do &lt;strong&gt;–discovery-token-ca-cert-hash&lt;/strong&gt;, você pode conseguir por meio desse comando:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2&amp;gt;/dev/null | \
+   openssl dgst -sha256 -hex | sed 's/^.* //'
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Agora é só juntar as saídas anteriores e formar o comando completo do kubeadm join.&lt;/p&gt;
+
+&lt;h3 id=&quot;remove-the-node&quot;&gt;Remove the node&lt;/h3&gt;
+&lt;p&gt;Caso deseje remover um node, para fazer os comandos listados abaixo:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl drain &amp;lt;node name&amp;gt; --delete-local-data --force --ignore-daemonsets
+
+kubectl delete node &amp;lt;node name&amp;gt;
+
+kubeadm reset
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;comandos-interessantes&quot;&gt;Comandos interessantes&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;Mostrar detalhes do Node com nome master
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl describe node master
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Mostrar algumas informações do cluster
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl cluster-info
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/insk8s_9.png&quot; alt=&quot; Informações do cluster&quot; style=&quot;width:800px;height:90px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 8 -  Informações do cluster. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Mostrar status dos componentes
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl get componentstatuses
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/insk8s_10.png&quot; alt=&quot; Informações dos componentes&quot; style=&quot;width:470px;height:70px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 9 -  Informações dos componentes. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt; &lt;/p&gt;
+
+&lt;h4 id=&quot;referências&quot;&gt;Referências&lt;/h4&gt;
+&lt;ol&gt;
+  &lt;li&gt;NSIGHT, UFC. Introdução a Kubernetes. Disponível em:&lt;a href=&quot;https://docs.google.com/presentation/d/1weqpBWa9FNjKc1ugCUIpwYYquvoIOFbUvEcZ9ZYapAg/edit#slide=id.g654e6a820d_0_553&quot;&gt;https://docs.google.com/presentation/d/1weqpBWa9FNjKc1ugCUIpwYYquvoIOFbUvEcZ9ZYapAg/edit#slide=id.g654e6a820d_0_553&lt;/a&gt;.Acessado em: 07 mar. 2020.&lt;/li&gt;
+  &lt;li&gt;kubernets. Production environment. Disponível em:&lt;a href=&quot;https://kubernetes.io/docs/setup/production-environment&quot;&gt;https://kubernetes.io/docs/setup/production-environment&lt;/a&gt;. Acessado em: 07 mar. 2020.&lt;/li&gt;
+  &lt;li&gt;Google Cloud. Como usar regras de firewall. Disponível em:&lt;a href=&quot;https://cloud.google.com/vpc/docs/using-firewalls?hl=pt-br&quot;&gt;https://cloud.google.com/vpc/docs/using-firewalls?hl=pt-br&lt;/a&gt;. Acessado em: 07 mar. 2020.&lt;/li&gt;
+&lt;/ol&gt;</content><author><name>Ana Amarante</name></author><summary type="html">Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.</summary></entry><entry><title type="html">Instalar o minikube em uma instância Gcloud</title><link href="http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube.html" rel="alternate" type="text/html" title="Instalar o minikube em uma instância Gcloud" /><published>2020-10-20T17:06:38-03:00</published><updated>2020-10-20T17:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube.html">&lt;p&gt;Este documento foi desenvolvido em &lt;strong&gt;março de 2020&lt;/strong&gt;, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.&lt;/p&gt;
 
 &lt;p&gt;O objetivo deste tutorial é a instalação do minikube numa instância da Google Cloud Platform. 
 Este tutorial abordará desde o início a criação do projeto na Google Cloud Platform até a finalização da instalação do minikube. Os tópicos detalhados estão listados abaixo:&lt;/p&gt;
@@ -9,7 +297,7 @@ Este tutorial abordará desde o início a criação do projeto na Google Cloud P
   &lt;li&gt;Instalação do kubectl&lt;/li&gt;
   &lt;li&gt;Instalação do minikube&lt;/li&gt;
   &lt;li&gt;Deploy&lt;/li&gt;
-  &lt;li&gt;Fontes&lt;/li&gt;
+  &lt;li&gt;Referências&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;h2 id=&quot;definição-teórica&quot;&gt;Definição teórica&lt;/h2&gt;
@@ -91,7 +379,7 @@ Este tutorial abordará desde o início a criação do projeto na Google Cloud P
     &lt;/ul&gt;
     &lt;p align=&quot;center&quot;&gt;
  &lt;img src=&quot;/images/minikube_1.png&quot; alt=&quot;Saída do comando para verificação do kubectl&quot; style=&quot;width:900px;height:75px;&quot; /&gt;
- &lt;figcaption align=&quot;center&quot;&gt;Figura 2 - Saída do comando para verificação do kubectl. Fonte: Autoria própria &lt;/figcaption&gt;
+ &lt;figcaption align=&quot;center&quot;&gt;Figura 2 - Saída do comando para verificação do kubectl. Fonte: Autoria própia &lt;/figcaption&gt;
  &lt;/p&gt;
   &lt;/li&gt;
 &lt;/ol&gt;
@@ -148,13 +436,13 @@ Execute o seguinte comando no seu terminal para concluir a criação do cluster,
     &lt;/ul&gt;
     &lt;p align=&quot;center&quot;&gt;
 &lt;img src=&quot;/images/minikube_2.png&quot; alt=&quot;Saída esperada do comando para verificação do minikube&quot; style=&quot;width:300px;height:100px;&quot; /&gt;
-&lt;figcaption align=&quot;center&quot;&gt;Figura 3 - Saída esperada do comando para verificação do minikube. Fonte: Autoria própria &lt;/figcaption&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 3 - Saída esperada do comando para verificação do minikube. Fonte: Autoria própia &lt;/figcaption&gt;
 &lt;/p&gt;
   &lt;/li&gt;
   &lt;li&gt;Como já foi dito o minikube simula um cluster real de um único nó, é possível vê esse comportamento por meio do comando $kubectl get nodes. A saída deve ser conforme está mostrado abaixo.
     &lt;p align=&quot;center&quot;&gt;
 &lt;img src=&quot;/images/minikube_3.png&quot; alt=&quot;Saída esperada do comando para verificação de nodes do kubernetes&quot; style=&quot;width:290px;height:70px;&quot; /&gt;
-&lt;figcaption align=&quot;center&quot;&gt;Figura 4 - Saída esperada do comando para verificação de nodes do kubernetes. Fonte: Autoria própria &lt;/figcaption&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 4 - Saída esperada do comando para verificação de nodes do kubernetes. Fonte: Autoria própia &lt;/figcaption&gt;
 &lt;/p&gt;
   &lt;/li&gt;
 &lt;/ol&gt;
@@ -186,7 +474,7 @@ image: ngnix
   &lt;li&gt;Vamos verificar o deployment, por meio do comando $kubectl get deployment. A saída deve ser similar a mostrada abaixo:
     &lt;p align=&quot;center&quot;&gt;
 &lt;img src=&quot;/images/minikube_4.png&quot; alt=&quot;Saída esperada da verificação do deployment&quot; style=&quot;width:320px;height:60px;&quot; /&gt;
-&lt;figcaption align=&quot;center&quot;&gt;Figura 5 - Saída esperada da verificação do deployment. Fonte: Autoria própria &lt;/figcaption&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 5 - Saída esperada da verificação do deployment. Fonte: Autoria própia &lt;/figcaption&gt;
 &lt;/p&gt;
   &lt;/li&gt;
   &lt;li&gt;Verificar os pods:
@@ -197,7 +485,7 @@ image: ngnix
     &lt;/ul&gt;
     &lt;p align=&quot;center&quot;&gt;
 &lt;img src=&quot;/images/minikube_5.png&quot; alt=&quot;Saída esperada da verificação dos pods&quot; style=&quot;width:400px;height:70px;&quot; /&gt;
-&lt;figcaption align=&quot;center&quot;&gt;Figura6 - Saída esperada da verificação dos pods. Fonte: Autoria própria &lt;/figcaption&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura6 - Saída esperada da verificação dos pods. Fonte: Autoria própia &lt;/figcaption&gt;
 &lt;/p&gt;
   &lt;/li&gt;
 &lt;/ol&gt;
@@ -209,7 +497,7 @@ image: ngnix
   &lt;li&gt;Tudo o que você precisa saber sobre Kubernetes – Parte 0. iMasters. Acessado em 23 de fev. 2020. Disponível em: &lt;a href=&quot;https://imasters.com.br/desenvolvimento/tudo-o-que-voce-precisa-saber-sobre-kubernetes-parte-01&quot;&gt;https://imasters.com.br/desenvolvimento/tudo-o-que-voce-precisa-saber-sobre-kubernetes-parte-01&lt;/a&gt;.&lt;/li&gt;
   &lt;li&gt;Install Minikube. Kubernetes. Acessado em 23 de fev. 2020. Disponível em: &lt;a href=&quot;https://kubernetes.io/docs/tasks/tools/install-minikube/&quot;&gt;https://kubernetes.io/docs/tasks/tools/install-minikube/&lt;/a&gt;.&lt;/li&gt;
   &lt;li&gt;01 - O que é o KUBERNETES e INSTALANDO o MINIKUBE. Descomplicando o Kubernetes. Acessado em 23 de fev. 2020. Disponível em: &lt;a href=&quot;https://www.youtube.com/watch?v=pV0nkr61XP8&quot;&gt;https://www.youtube.com/watch?v=pV0nkr61XP8&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;</content><author><name></name></author><summary type="html">Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.</summary></entry><entry><title type="html">Conceitos básicos do Kubernetes</title><link href="http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html" rel="alternate" type="text/html" title="Conceitos básicos do Kubernetes" /><published>2020-04-12T17:06:38-03:00</published><updated>2020-04-12T17:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-%20introdut%C3%B3rios</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html">&lt;h2 id=&quot;introdução&quot;&gt;Introdução&lt;/h2&gt;
+&lt;/ol&gt;</content><author><name>Ana Amarante</name></author><summary type="html">Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.</summary></entry><entry><title type="html">Conceitos básicos do Kubernetes</title><link href="http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html" rel="alternate" type="text/html" title="Conceitos básicos do Kubernetes" /><published>2020-04-12T17:06:38-03:00</published><updated>2020-04-12T17:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-%20introdut%C3%B3rios</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html">&lt;h2 id=&quot;introdução&quot;&gt;Introdução&lt;/h2&gt;
 
 &lt;p&gt;Este documento foi desenvolvido durante a disciplina DevOps na Residência em TI aplicada à área jurídica - turma JF/IMD, na especialidade de Redes e Infraestrutura. O docente foi o Prof Me. André Solino.&lt;/p&gt;
 
@@ -332,4 +620,4 @@ Um deployment é uma implantação de uma aplicação dentro do Kubernetes, por 
   &lt;li&gt;Kubernetes Components. Kubernetes. Disponível em: &lt;a href=&quot;https://kubernetes.io/docs/concepts/overview/components/&quot;&gt;https://kubernetes.io/docs/concepts/overview/components/&lt;/a&gt;. Acessado em 23 de fev. 2020.&lt;/li&gt;
   &lt;li&gt;Alta disponibilidade com Kubernetes na prática. Tech@Grupo ZAP. Disponível em: &lt;a href=&quot;https://medium.com/tech-grupozap/alta-disponibilidade-com-kubernetes-na-pr%C3%A1tica-b9cf4261d2f7&quot;&gt;https://medium.com/tech-grupozap/alta-disponibilidade-com-kubernetes-na-pr%C3%A1tica-b9cf4261d2f7&lt;/a&gt;. Acessado em 23 de fev. 2020.&lt;/li&gt;
   &lt;li&gt;Kubernetes na AWS. AWS. Disponível em: &lt;a href=&quot;https://aws.amazon.com/pt/kubernetes/&quot;&gt;https://aws.amazon.com/pt/kubernetes/&lt;/a&gt;. Acessado em 23 de fev. 2020.&lt;/li&gt;
-&lt;/ol&gt;</content><author><name></name></author><summary type="html">Introdução</summary></entry></feed>
+&lt;/ol&gt;</content><author><name>Ana Amarante</name></author><summary type="html">Introdução</summary></entry></feed>

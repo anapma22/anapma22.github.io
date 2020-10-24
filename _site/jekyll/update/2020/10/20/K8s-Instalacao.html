@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Instalação do Kubernetes | Ana Amarante</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Instalação do Kubernetes" />
+<meta name="author" content="Ana Amarante" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino." />
+<meta property="og:description" content="Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino." />
+<link rel="canonical" href="http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao.html" />
+<meta property="og:url" content="http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao.html" />
+<meta property="og:site_name" content="Ana Amarante" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-10-20T17:06:38-03:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao.html"},"author":{"@type":"Person","name":"Ana Amarante"},"headline":"Instalação do Kubernetes","dateModified":"2020-10-20T17:06:38-03:00","datePublished":"2020-10-20T17:06:38-03:00","description":"Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.","url":"http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao.html","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Ana Amarante" /><!-- Favicon head tag -->
+    <link rel="icon" type="imagem/png" href="/images/favicon.png">
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Ana Amarante</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link " href="/jekyll/update/2020/10/20/K8s-Minikube.html">Instalar o minikube em uma instância Gcloud</a><a class="page-link " href="/jekyll/update/2020/10/20/K8s-Instalacao.html">Instalação do Kubernetes</a><a class="page-link " href="/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html">Conceitos básicos do Kubernetes</a></div>
+
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Instalação do Kubernetes</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-10-20T17:06:38-03:00" itemprop="datePublished">Oct 20, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Este documento foi desenvolvido em <strong>março de 2020</strong>, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.</p>
+
+<p>O objetivo deste tutorial é a instalação do Kubernetes.</p>
+
+<p>Este tutorial abordará os tópicos listados abaixo:</p>
+<ol>
+  <li>Criação das instâncias</li>
+  <li>Container runtimes  - Docker</li>
+  <li>Iniciando Clusters com o kubeadm</li>
+  <li>Comandos interessantes</li>
+  <li>Referências</li>
+</ol>
+
+<h2 id="criação-das-instâncias">Criação das instâncias</h2>
+
+<p>Foram criadas três máquinas, onde uma será o master e as outras duas os workers.
+Todas elas com 2vCPU e o centOS7.
+Para facilitar o trabalho, em casos de comandos repetidos usamos o tilix para digitar nos três terminais de uma vez.
+Todas foram logadas como root.</p>
+
+<h2 id="container-runtimes----docker">Container runtimes  - Docker</h2>
+
+<p>Para usar os containers nos pods, o K8s usa alguns Container runtimes, em nosso caso será o Docker, então, vamos para sua instalação. 
+<strong>Esse processo deve ser feito em todas as máquinas!</strong>
+Logue como root: sudo su -</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Install Docker CE
+## Set up the repository
+### Install required packages.
+yum install -y yum-utils device-mapper-persistent-data lvm2
+
+### Add Docker repository.
+yum-config-manager --add-repo \
+  https://download.docker.com/linux/centos/docker-ce.repo
+
+## Install Docker CE.
+yum update -y &amp;&amp; yum install -y \
+  containerd.io-1.2.10 \
+  docker-ce-19.03.4 \
+  docker-ce-cli-19.03.4
+
+## Create /etc/docker directory.
+mkdir /etc/docker
+
+# Setup daemon.
+cat &gt; /etc/docker/daemon.json &lt;&lt;EOF
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2",
+  "storage-opts": [
+    "overlay2.override_kernel_check=true"
+  ]
+}
+EOF
+
+mkdir -p /etc/systemd/system/docker.service.d
+
+# Restart Docker
+systemctl daemon-reload
+
+systemctl restart docker
+
+systemctl enable docker
+</code></pre></div></div>
+
+<h2 id="iniciando-clusters-com-o-kubeadm">Iniciando Clusters com o kubeadm</h2>
+
+<p>Como já foi dito nos outros documentos, o kubeadm  automatiza parte do processo de criação do cluster.</p>
+
+<p>Como estamos trabalhando em um laboratório para ambiente de produção, iremos parar e desabilitar o firewalld. Caso você esteja em um ambiente de produção real é importante rever a documentação deste serviço para que ele fique habilitado e não abra falhas de segurança na sua implementação.</p>
+
+<ol>
+  <li>Parando o firewalld:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>systemctl stop firewalld
+systemctl disable firewalld
+</code></pre></div>    </div>
+  </li>
+  <li>Portas que devem estar liberadas:
+    <ul>
+      <li>Master: 6443*, 2379-2380, 10250, 10251 e 10252 .</li>
+      <li>Workers: 10250 e 30000-32767.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="instalação-do-kubeadm-kubelet-and-kubectl">Instalação do kubeadm, kubelet and kubectl</h3>
+<p>Como dito acima, o <strong>kubeadm</strong> automatiza parte do processo de criação do cluster. O <strong>kubelet</strong> faz a interface com o docker, atua como agente em cada node e o <strong>kubectl</strong> é a interface de linha de comando do K8s.
+<strong>Esse processo deve ser feito em todas as máquinas!</strong>
+É necessário definir o SELinux no modo permissivo executando os comando abaixo. Isso irá acontecer até que o suporte ao SELinux seja aprimorado no kubelet.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cat &lt;&lt;EOF &gt; /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+
+# Set SELinux in permissive mode (effectively disabling it)
+setenforce 0
+sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+systemctl enable --now kubelet
+</code></pre></div></div>
+<p>Alguns usuários do RHEL / CentOS 7 relataram problemas com o tráfego sendo roteado incorretamente devido ao desvio do iptables. Você deve garantir que net.bridge.bridge-nf-call-iptables esteja definido como 1 na sua configuração sysctl, por exemplo:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cat &lt;&lt;EOF &gt; /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sysctl --system
+</code></pre></div></div>
+<p>Para ter certeza que o módulo br_netfilter foi um módulo carregado no kernerl, utilizae o lsmod que é um comando para sistemas operacionais Linux que exibe quais módulos carregáveis do kernel estão atualmente carregados.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>lsmod | grep br_netfilter
+</code></pre></div></div>
+<p>Para que você fique com a versão mais atualizada do kubeadm, rode:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>yum update
+</code></pre></div></div>
+<p>Aqui, caso seja mostrado alguma atualização do docker, você não deve marcar para atualizar os pacotes: <strong>docker-ce, docker-ce-cli ou containerd.io</strong>. O repositório do docker atualiza mais rápido do que o do kubernetes, logo, não se deve ter a versão mais atualizada do docker pois o K8s pode não suportar.</p>
+
+<h3 id="creating-a-single-control-plane-cluster-with-kubeadm">Creating a single control-plane cluster with kubeadm</h3>
+<p>Os objetivos desta seção serão: Instalar um cluster Kubernetes com control-plane e instalar um puglin de rede usada para que os pods possam se comunicar entre si.</p>
+
+<p><strong>Esse processo  SÓ deve ser feito no MASTER! Apenas ele tem o Control Plane.</strong>
+Iniciar o control-plane node:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubeadm init
+</code></pre></div></div>
+
+<p>Caso você use mais de uma interface de rede, é possível setar qual a interface você quer que seja usada nesta operação:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubeadm init --apiserver-advertise-address $(hostname -i)
+</code></pre></div></div>
+
+<p>Note, os dois comandos são equivalentes caso você tenha apenas uma interface de rede!
+A saída deste comando (kubeadmn init) deve ser similar a mostrada abaixo:</p>
+
+<p align="center">
+<img src="/images/insk8s_1.png" alt="Saída esperada do kubeadm init" style="width:650px;height:250px;" />
+<figcaption align="center">Figura 1 - Saída esperada do kubeadm init. Fonte: Autoria própia </figcaption>
+</p>
+
+<p>A partir de agora, você tem duas opções para fazer iniciar seu cluster:</p>
+<ol>
+  <li>Como um usuário comum.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+</code></pre></div>    </div>
+  </li>
+  <li>Como root.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>export KUBECONFIG=/etc/kubernetes/admin.conf
+</code></pre></div>    </div>
+    <p>O kubeadm join… mostrado acima, é o comando utilizado para ingressar seus workers no seu cluster.</p>
+  </li>
+</ol>
+
+<p>Na parte de rede, existem plugins que permitem criar redes virtuais ou rede de overlay. Eles criam túneis entre os nodes, eles permitem que um pod que está no node A consiga se comunicar com um pode no node B, por exemplo.</p>
+
+<p>Na documentação oficial, vimos alguns dos diferentes plugins disponíveis. Aqui foi usado o Weave, conforme está mostrado abaixo:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+</code></pre></div></div>
+<p>Para passar o tráfego IPv4 para as cadeias de iptables, se faz necessário:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sysctl net.bridge.bridge-nf-call-iptables=1
+</code></pre></div></div>
+<p>Depois que o pod network foi instalado, você pode confirmar se o pod CoreDNS está Running na saída do:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> kubectl get pods --all-namespaces
+</code></pre></div></div>
+
+<p align="center">
+<img src="/images/insk8s_2.png" alt="Saída esperada do kubectl get pods --all-namespaces (com alguns pods iniciando)" style="width:620px;height:210px;" />
+<figcaption align="center">Figura 2 - Saída esperada do kubectl get pods --all-namespaces (com alguns pods iniciando). Fonte: Autoria própia </figcaption>
+</p>
+
+<p>Como mostrado na Figura 2, assim que se iniciam os pods ficam no status Pending para depois passar para Running.</p>
+
+<p align="center">
+<img src="/images/insk8s_3.png" alt="Saída esperada do kubectl get pods --all-namespaces (com todos os pods prontos)" style="width:650px;height:220px;" />
+<figcaption align="center">Figura 3 - Saída esperada do kubectl get pods --all-namespaces (com todos os pods prontos). Fonte: Autoria própia </figcaption>
+</p>
+
+<p>Após todos subirem corretamente, você pode verificar que os nodes.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get nodes
+</code></pre></div></div>
+<p align="center">
+<img src="/images/insk8s_4.png" alt="Saída esperada do kubectl get nodes" style="width:300px;height:80px;" />
+<figcaption align="center">Figura 4.1 - Saída esperada do kubectl get nodes, você deverá ver essa! Depois que adicionar os nodes, verá a Figura 4.2. Fonte: Autoria própia </figcaption>
+</p>
+
+<p align="center">
+<img src="/images/insk8s_5.png" alt="Saída esperada do kubectl get nodes" style="width:320px;height:100px;" />
+<figcaption align="center">Figura 4.2 - Saída esperada do kubectl get nodes com os workers adicionais. Fonte: Autoria própia </figcaption>
+</p>
+
+<h3 id="joining-your-nodes">Joining your nodes</h3>
+<p><strong>Esse processo deve ser feito nos workers!</strong>
+Aqui, você já deu o comando kubeadm init e já tem a saída, que inclue o kubeadm join, como no <strong>EXEMPLO</strong> abaixo. Se atente que você deve usar o kubeadm join que você obteve, não o do exemplo.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> kubeadm join 10.128.0.3:6443 --token c3y122.omruf7ogbo4x34d7 \
+    --discovery-token-ca-cert-hash sha256:4541d7661bdf610cca14500f00425de412e7773e8962c3ac0b218717bacce88c
+</code></pre></div></div>
+
+<p>Após pegar este comando, você deve inseri-lo nas instâncias que serão seus workers.</p>
+
+<p>Abaixo é mostrado um exemplo dessa inserção, porém temos como retorno o seguinte erro: [ERROR FileContent–proc-sys-net-ipv4-ip_forward]: /proc/sys/net/ipv4/ip_forward contents are not set to 1.</p>
+
+<p align="center">
+<img src="/images/insk8s_6.png" alt="Erro do kubeadm join" style="width:1000px;height:115px;" />
+<figcaption align="center">Figura 5 - Erro do kubeadm join. Fonte: Autoria própia </figcaption>
+</p>
+
+<p>Após esse erro foi verificado que kubelet não estava funcionando e não foi possível reiniciá-lo.</p>
+
+<p align="center">
+<img src="/images/insk8s_7.png" alt="Service kubelet não iniciado" style="width:680px;height:270px;" />
+<figcaption align="center">Figura 6 - Service kubelet não iniciado. Fonte: Autoria própia </figcaption>
+</p>
+
+<p>Para solucionar foi necessário restartar o docker nos workers:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> systemctl restart docker 
+</code></pre></div></div>
+<p>Depois disso, o kubeadm join funcionou como o esperado e o kubelet subiu automaticamente.</p>
+
+<p align="center">
+<img src="/images/insk8s_8.png" alt="Service kubelet iniciado" style="width:1000px;height:350px;" />
+<figcaption align="center">Figura 7 - Service kubelet iniciado. Fonte: Autoria própia </figcaption>
+</p>
+
+<p>Caso você não tenho mais o token, é possível gerar outro. Todos os comandos relacionados a listagem/geração de tokens são feitas no master.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> kubeadm token list 
+</code></pre></div></div>
+<p>Os tokens expiram após 24 horas, caso você deseje gerar outro token:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubeadm token create 
+</code></pre></div></div>
+<p>A saída será semelhante a isto:  5didvk.d09sbcov8ph2amjw
+Caso você não tenha o valor do <strong>–discovery-token-ca-cert-hash</strong>, você pode conseguir por meio desse comando:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2&gt;/dev/null | \
+   openssl dgst -sha256 -hex | sed 's/^.* //'
+</code></pre></div></div>
+<p>Agora é só juntar as saídas anteriores e formar o comando completo do kubeadm join.</p>
+
+<h3 id="remove-the-node">Remove the node</h3>
+<p>Caso deseje remover um node, para fazer os comandos listados abaixo:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl drain &lt;node name&gt; --delete-local-data --force --ignore-daemonsets
+
+kubectl delete node &lt;node name&gt;
+
+kubeadm reset
+</code></pre></div></div>
+
+<h2 id="comandos-interessantes">Comandos interessantes</h2>
+<ul>
+  <li>Mostrar detalhes do Node com nome master
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe node master
+</code></pre></div>    </div>
+  </li>
+  <li>Mostrar algumas informações do cluster
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl cluster-info
+</code></pre></div>    </div>
+  </li>
+</ul>
+<p align="center">
+<img src="/images/insk8s_9.png" alt=" Informações do cluster" style="width:800px;height:90px;" />
+<figcaption align="center">Figura 8 -  Informações do cluster. Fonte: Autoria própia </figcaption>
+</p>
+
+<ul>
+  <li>Mostrar status dos componentes
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get componentstatuses
+</code></pre></div>    </div>
+  </li>
+</ul>
+<p align="center">
+<img src="/images/insk8s_10.png" alt=" Informações dos componentes" style="width:470px;height:70px;" />
+<figcaption align="center">Figura 9 -  Informações dos componentes. Fonte: Autoria própia </figcaption>
+</p>
+
+<p> </p>
+
+<h4 id="referências">Referências</h4>
+<ol>
+  <li>NSIGHT, UFC. Introdução a Kubernetes. Disponível em:<a href="https://docs.google.com/presentation/d/1weqpBWa9FNjKc1ugCUIpwYYquvoIOFbUvEcZ9ZYapAg/edit#slide=id.g654e6a820d_0_553">https://docs.google.com/presentation/d/1weqpBWa9FNjKc1ugCUIpwYYquvoIOFbUvEcZ9ZYapAg/edit#slide=id.g654e6a820d_0_553</a>.Acessado em: 07 mar. 2020.</li>
+  <li>kubernets. Production environment. Disponível em:<a href="https://kubernetes.io/docs/setup/production-environment">https://kubernetes.io/docs/setup/production-environment</a>. Acessado em: 07 mar. 2020.</li>
+  <li>Google Cloud. Como usar regras de firewall. Disponível em:<a href="https://cloud.google.com/vpc/docs/using-firewalls?hl=pt-br">https://cloud.google.com/vpc/docs/using-firewalls?hl=pt-br</a>. Acessado em: 07 mar. 2020.</li>
+</ol>
+
+  </div><a class="u-url" href="/jekyll/update/2020/10/20/K8s-Instalacao.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Ana Amarante</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+         <!--  <li class="p-name">Ana Amarante</li> --><li><a class="u-email" href="mailto:">anapma22@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/anapma22"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">anapma22</span></a></li><li><a href="https://hub.docker.com/u/anapma22"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#dockerhub"></use></svg> <span class="username">anapma22</span></a></li><li><a href="https://www.linkedin.com/in/anapma22"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">anapma22</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Bacharel em Ciências e Tecnologia.    Graduanda em Eng. de Telecomunicações.     Especialista de TI - Redes e Infraestrutura.  </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
