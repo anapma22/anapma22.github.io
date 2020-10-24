@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>NFS com NGINX no kubernetes | Ana Amarante</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="NFS com NGINX no kubernetes" />
+<meta name="author" content="Ana Amarante" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino." />
+<meta property="og:description" content="Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino." />
+<link rel="canonical" href="http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs.html" />
+<meta property="og:url" content="http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs.html" />
+<meta property="og:site_name" content="Ana Amarante" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-10-21T20:06:38-03:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs.html"},"author":{"@type":"Person","name":"Ana Amarante"},"headline":"NFS com NGINX no kubernetes","dateModified":"2020-10-21T20:06:38-03:00","datePublished":"2020-10-21T20:06:38-03:00","description":"Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.","url":"http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs.html","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Ana Amarante" /><!-- Favicon head tag -->
+    <link rel="icon" type="imagem/png" href="/images/favicon.png">
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Ana Amarante</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link " href="/jekyll/update/2020/10/21/K8s-nfs-http.html">NGINX com HTTPS no kubernetes</a><a class="page-link " href="/jekyll/update/2020/10/21/K8s-nfs.html">NFS com NGINX no kubernetes</a><a class="page-link " href="/jekyll/update/2020/10/20/K8s-Instalacao.html">Instalação do Kubernetes</a><a class="page-link " href="/jekyll/update/2020/10/20/K8s-Minikube.html">Instalar o minikube em uma instância Gcloud</a><a class="page-link " href="/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html">Conceitos básicos do Kubernetes</a></div>
+
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">NFS com NGINX no kubernetes</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-10-21T20:06:38-03:00" itemprop="datePublished">Oct 21, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Este documento foi desenvolvido em <strong>março de 2020</strong>, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.</p>
+
+<p>O objetivo deste tutorial é a instalação do NFS no Kubernetes.</p>
+
+<p>Este tutorial abordará os tópicos listados abaixo:</p>
+<ol>
+  <li>Definição teórica</li>
+  <li>NFS server</li>
+  <li>NFS client</li>
+  <li>NFS no kubernetes</li>
+  <li>HAProxy Ingress Controller</li>
+  <li>Deploy do NGINX</li>
+  <li>Erros cometidos durante este trabalho</li>
+  <li>Referências</li>
+</ol>
+
+<h2 id="definição-teórica">Definição teórica</h2>
+<p>Conforme está dito na documentação oficial do Kubernets: Um volume nfs permite que um compartilhamento NFS (Network File System) existente seja montado no seu Pod. O conteúdo de um volume nfs é preservado e o volume é apenas desmontado. Isso significa que um volume NFS pode ser preenchido previamente com dados e que esses dados podem ser “transferidos” entre os Pods. O NFS pode ser montado por vários gravadores simultaneamente.</p>
+
+<p>O Kubernetes usa o service como uma maneira abstrata de expor um aplicativo em execução em um conjunto de pods como um serviço de rede. O que faremos aqui será a configuração de um service para um volume persistente ou PersistentVolume (PV).</p>
+
+<p>É interessante observar também outro conceito de volumes que utilizaremos neste tutorial, que é o de PersistentVolumeClaim (PVC). Ele é usado para montar um PV dentro de um pod, já que permite que o PV seja utilizado de forma a independer de qualquer pod, isso alinhado ao NFS Server nos permite trabalhar com os arquivos de maneira a não se preocupar com a efemeridade dos pods.</p>
+
+<h2 id="nfs-server">NFS server</h2>
+<ol>
+  <li>A máquina que será hospedado o NFS Server pode ser o master ou pode ser uma máquina exclusiva para esse servidor, o último caso é o mais indicado. 
+Neste tutorial, utilizamos o centos7. Com uma máquina com disco de 10GB e vCPUI.</li>
+  <li>Instalação do NFS:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>yum install nfs-utils -y
+</code></pre></div>    </div>
+    <h3 id="diretório-a-ser-compartilhado">Diretório a ser compartilhado</h3>
+  </li>
+  <li>Criação do diretório que será compartilhado pelo NFS:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkdir /var/nfsshare
+</code></pre></div>    </div>
+  </li>
+  <li>Definir permissões, no caso do <em>chmod</em> será atribuído a permissão de leitura, escrita e execução para o dono da pasta (7), leitura e execução para usuários do mesmo grupo (5) e também para outros usuários (5). Já o chown, define que  <em>/var/nfsshare</em> pertence a <em>nfsnobody</em> e ao grupo <em>nfsnobody</em>.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>chmod -R 755 /var/nfsshare
+chown nfsnobody:nfsnobody /var/nfsshare
+</code></pre></div>    </div>
+    <ul>
+      <li>Caso queria compartilhar outro diretório como /home, as permissões deste diretório não devem ser alteradas.</li>
+    </ul>
+  </li>
+  <li>Configurar os serviços, conforme abaixo:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>systemctl enable rpcbind
+systemctl enable nfs-server
+systemctl enable nfs-lock
+systemctl enable nfs-idmap
+systemctl start rpcbind
+systemctl start nfs-server
+systemctl start nfs-lock
+systemctl start nfs-idmap
+</code></pre></div>    </div>
+  </li>
+  <li>Agora, compartilharemos o diretório NFS pela rede da seguinte maneira:
+    <ul>
+      <li>Abrir o arquivo que será responsável por setar as máquinas que têm acesso à partilha.
+        <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim /etc/exports
+</code></pre></div>        </div>
+      </li>
+      <li>Criaremos um ponto de compartilhamento e <em>/var/nfsshare</em>. Edite o arquivo <em>/etc/exports</em> da seguinte maneira:
+        <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/var/nfsshare    *(rw,sync,no_root_squash,no_all_squash)
+</code></pre></div>        </div>
+      </li>
+      <li>O * representa que a pasta <em>/var/nfsshare</em> ficará acessível para qualquer cliente, caso queira definir os clientes, pode inserir os IPs nesse arquivo.</li>
+      <li>Para conhecimento, os parâmetros estão detalhados abaixo:</li>
+    </ul>
+    <ul>
+      <li>rw → Permite leitura e escrita;</li>
+      <li>sync→ NFS Responde às solicitações somente após as alterações terem sido confirmadas no armazenamento estável;</li>
+      <li>no_root_squash → Uma técnica para anular a escalação de privilégios na máquina cliente.</li>
+      <li>no_all_squash → Similar ao no_root_squash, mas para usuários não roots.</li>
+    </ul>
+  </li>
+  <li>Podemos reiniciar o NFS:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>systemctl restart nfs-server
+</code></pre></div>    </div>
+  </li>
+  <li>Configurar o firewall:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>firewall-cmd --permanent --zone=public --add-service=nfs
+firewall-cmd --permanent --zone=public --add-service=mountd
+firewall-cmd --permanent --zone=public --add-service=rpc-bind
+firewall-cmd --reload
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h2 id="nfs-client">NFS client</h2>
+<p>Essa configuração é feita em cada máquina.</p>
+<ol>
+  <li>Instalar o NF:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>yum install nfs-utils -y
+</code></pre></div>    </div>
+  </li>
+  <li>Criação do diretório que será compartilhado pelo NFS:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkdir -p /mnt/nfs/var/nfsshare
+</code></pre></div>    </div>
+  </li>
+  <li>O próximo passo será montar os diretórios compartilhados na máquina do cliente, como mostrado abaixo:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mount -t nfs 10.128.0.6:/var/nfsshare /mnt/nfs/var/nfsshare/
+</code></pre></div>    </div>
+  </li>
+  <li>Agora que o NFS já foi conectado é hora de fazer uma verificação cruzada:</li>
+</ol>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>df -kh
+</code></pre></div></div>
+<ol>
+  <li>Checar as permissões de leitura e escrita por meio da inserção de um arquivo:</li>
+</ol>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>touch /mnt/nfs/var/nfsshare/test_nfs
+</code></pre></div></div>
+<p>Após isso verifique no server se o arquivo foi criado.</p>
+
+<ol>
+  <li>Para evitar que tenhamos que montar novamente o compartilhamento NFS no cliente após cada reinicialização. Podemos configurar, mas que ele fique permanentemente, adicionando o compartilhamento NFS no /etc/fstab, conforme está mostrado abaixo.</li>
+</ol>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim /etc/fstab
+</code></pre></div></div>
+<ol>
+  <li>Inserir os parâmetros no arquivo e salvar:</li>
+</ol>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[...]
+10.128.0.6:/var/nfsshare   /mnt/nfs/var/nfsshare   nfs defaults 0 0
+</code></pre></div></div>
+<p>Onde o IP inserido é o do NFS server.</p>
+<ol>
+  <li>Agora, podemos reiniciar a máquina para finalizar a configuração e garantir um ponto de montagem permanente do NFS.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>reboot
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h2 id="nfs-no-kubernetes">NFS no kubernetes</h2>
+<ol>
+  <li>Agora, que o NFS Server e Client já está configurado, temos duas opções para montar o compartilhamento existente.
+    <ul>
+      <li>Na primeira, o compartilhamento do NFS é configurado junto com a definição dos pods. Nesta opção o compartilhamento é manual, por isso não trabalharemos com ela.</li>
+      <li>Na segunda, o compartilhamento é definido como um objeto cluster por meio de PV, onde o cluster define um intervalo de compartilhamento do NFS para os inquilinos solicitarem e consumirem. Usaremos esta abordagem.</li>
+    </ul>
+  </li>
+  <li>Nos yamls abaixo será abordado sobre dois conceitos, <em>accessModes</em> e <em>persistentVolumeReclaimPolicy</em>.
+Modos de acessos:
+    <ul>
+      <li>ReadWriteOnce – o volume será montado como read-write por um único node.</li>
+      <li>ReadOnlyMany –  o volume será montado como read-only por vários nodes.</li>
+      <li>ReadWriteMany –  o volume será montado como read-write por vários nodes.
+Reclaim é a política usada para definir o que o cluster deve fazer depois que um PV for liberado de um claim.</li>
+      <li>Retain - permite a recuperação manual do recurso. Quando o PVC é excluído, o PV ainda existe e o volume é considerado “liberado”.</li>
+      <li>Delete - para plug-ins de volume que oferecem suporte à política de recuperação. A exclusão remove o objeto PV do Kubernetes, bem como o ativo de armazenamento associado na infraestrutura externa (e.g. Azure, AWS, GCE ou Cinder).</li>
+      <li>Retain (deprecated) - executa uma limpeza básica (rm -rf / volume / *) no volume e o torna disponível novamente para uma nova reivindicação.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="expondo-compartilhamentos-nfs-como-um-objeto-de-cluster">Expondo compartilhamentos NFS como um objeto de cluster</h3>
+
+<h4 id="pv">PV</h4>
+<ol>
+  <li>Neste método, usaremos os conceitos expostos anteriormente de PV e PVC, eles serão responsáveis por gerenciar e liberar o acesso ao compartilhamento do NFS.</li>
+  <li>Criar o arquivo para definição do PV à nível do cluster.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim nfs-pv.yaml
+</code></pre></div>    </div>
+  </li>
+  <li>Inserir o yaml abaixo no arquivo e salvar.
+```
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv # Altere com o nome que deseja para o PV
+  labels:
+ name: nfs-pv 
+spec:
+  storageClassName: manual
+  capacity:
+ storage: 300Mi # Altere para ser o tamanho do volume a ser compartilhado
+  accessModes:
+    <ul>
+      <li>ReadWriteMany # Definição dos acessos
+  persistentVolumeReclaimPolicy: Recycle # Política do reclaim 
+  nfs:
+ server: 10.128.0.6 # Altere com o IP do seu NFS server
+ path: “/var/nfsshare” # Altere para o local de sua preferência
+```</li>
+    </ul>
+  </li>
+  <li>Aplicar o pv-nfs.yaml:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply -f nfs-pv.yaml
+</code></pre></div>    </div>
+  </li>
+  <li>Verificar se o volume foi criado corretamente:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pv
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h4 id="pvc">PVC</h4>
+<ol>
+  <li>Criar o arquivo para definição do PV à nível do cluster.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim nfs-pvc.yaml
+</code></pre></div>    </div>
+  </li>
+  <li>Inserir o yaml abaixo no arquivo e salvar.
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc # Altere com o nome que deseja para o PVC
+spec:
+  storageClassName: manual
+  accessModes:
+    <ul>
+      <li>ReadWriteMany # Definição dos acessos
+  resources:
+ requests:
+storage: 150Mi # Tamanho do volume requisitado
+```</li>
+    </ul>
+  </li>
+  <li>Aplicar o pv-nfs.yaml:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply -f nfs-pvc.yaml
+</code></pre></div>    </div>
+  </li>
+  <li>Verificar se o volume foi criado corretamente:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pvc
+</code></pre></div>    </div>
+  </li>
+  <li>Verificar se o pv mudou de status Available para Bound:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pv
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h2 id="haproxy-ingress-controller">HAProxy Ingress Controller</h2>
+<p>É esperado que o kubernetes trabalhe com um tráfego considerável, além de se tratar de um ambiente ser altamente dinâmico, devido a criação, deletamento e realocação de pods. Para isso utilizamos o HAProxy.</p>
+<ol>
+  <li>Crie os recursos:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create -f https://haproxy-ingress.github.io/resources/haproxy-ingress.yaml
+</code></pre></div>    </div>
+  </li>
+  <li>O controlador ainda não está em execução. Hora de editar qualquer valor padrão, por exemplo, a versão da imagem do controlador:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl -n ingress-controller edit configmap haproxy-ingress
+kubectl -n ingress-controller edit daemonset haproxy-ingress
+</code></pre></div>    </div>
+  </li>
+  <li>Rotule pelo menos um nó:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl label node master-1 role=ingress-controller
+</code></pre></div>    </div>
+  </li>
+  <li>Agora o HAProxy Ingress deve estar em funcionamento:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl -n ingress-controller get pod
+</code></pre></div>    </div>
+  </li>
+</ol>
+<p align="center">
+<img src="/images/nfs_1.png" alt="Saída esperada com o HAProxy Ingress up" style="width:320px;height:50px;" />
+<figcaption align="center">Figura 1 - Saída esperada com o HAProxy Ingress up. Fonte: Autoria própia </figcaption>
+</p>
+
+<h2 id="deploy-do-nginx">Deploy do NGINX</h2>
+<ol>
+  <li>Criar o arquivo nfs-nginx.yaml:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim nfs-nginx.yaml
+</code></pre></div>    </div>
+  </li>
+  <li>Inserir no arquivo e salvar:</li>
+</ol>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apiVersion: apps/v1
+kind: Deployment # Deploy do pod
+metadata:
+  labels:
+    run: nginx
+  name: nfs-nginx
+  namespace: default 
+spec: 
+  replicas: 1 
+  selector:
+    matchLabels:
+      run: nginx
+  template:
+    metadata:
+      labels:
+        run: nginx
+    spec:
+      volumes:
+      - name: nfs1 # Nome do volume
+        persistentVolumeClaim:
+          claimName: nfs-pvc # Nome do pvc criado anteriormente
+      containers:
+      - image: nginx
+        imagePullPolicy: Always
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: nfs1 # Mesmo nome do volume criado neste deploy
+          mountPath: /usr/share/nginx/html # Path que será criado dentro do container    
+#---
+apiVersion: v1
+kind: Service # Permite que o tráfego seja passado para o Ingress Controller
+metadata:
+  labels:
+    run: nginx
+  name: nfs-nginx # Nome do service que deve ter o mesmo valor que serviceName no Ingress, caso contrário o Endpoint não será encontrado
+ spec:
+  selector:
+    run: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+#---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx # Altere com o nome do ingress
+  namespace: default
+spec:
+  rules:
+  - host: nfs-nginx.35.222.201.213.nip.io # Altere com o seu host nip.io para mais informações
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nfs-nginx # Altere com o nome do service 
+          servicePort: 80
+</code></pre></div></div>
+
+<ol>
+  <li>Aplique o yaml criado:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply -f nfs-nginx.yaml
+</code></pre></div>    </div>
+  </li>
+  <li>Após isso vamos inserir o index.html dentro do NFS Server (<em>/var/nfsshar</em>), pois essa pasta foi mapeada para dentro dos pods (<em>/usr/share/nginx/html</em>):
+    <ul>
+      <li>Entre no NFS Server e vá para o diretório <em>/var/nfsshar</em>:
+        <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim index.html
+</code></pre></div>        </div>
+      </li>
+      <li>Coloque alguma informação no arquivo e salve.</li>
+      <li>Ao acessar o endereço salvo no ingress, é possível vê a página, como esperado:</li>
+    </ul>
+  </li>
+</ol>
+<p align="center">
+<img src="/images/nfs_2.png" alt=" index.html no NFS Server" style="width:200px;height:70px;" />
+<figcaption align="center">Figura 2 -  index.html no NFS Server. Fonte: Autoria própia </figcaption>
+</p>
+
+<p>É possível verificar no worker, o mapeamento feito pelo NFS:</p>
+<p align="center">
+<img src="/images/nfs_3.png" alt="Mapeamento do NFS no worker," style="width:900px;height:70px;" />
+<figcaption align="center">Figura 3 - Mapeamento do NFS no worker, sem nada ter sido configurado lá. Fonte: Autoria própia </figcaption>
+</p>
+
+<p>Como foi visto, o arquivo criado dentro do NFS Server foi lido pelos pods e a página foi exibida corretamente.</p>
+
+<h2 id="erros-cometidos-durante-este-trabalho">Erros cometidos durante este trabalho</h2>
+<p>O objetivo desta seção é apontar os erros que enfrentei, caso você passe por eles já saberá a solução facilmente.</p>
+
+<p>O nfs-nginx.yaml (com o deploy, service e ingress) estava com a identação incorreta e inicialmente a declaração dos volumes no lugar errado, dentro dos containers (o que é dentro do containers é o volumeMounts). O erro aconteceu por falta de atenção e a solução foi tomada em etapas, verifiquei que tinha algo de errado com os volumes, pois ao comentar apenas aquela parte o nginx funcionava.</p>
+
+<p>Outro erro foi acreditar que o index.html deveria está dentro dos pods. Estava entrando nos pods e colocava o arquivo dentro /usr/share/nginx/html, porém percebi que isto não fazia sentido, visto que os pods são efêmeros, então percebi que o local correto seria no NFS Server que é na pasta mapeada.</p>
+
+<h4 id="referências">Referências</h4>
+<ol>
+  <li>NFS Server and Client Installation on CentOS 7. How to Forge. Disponível em: <a href="https://www.howtoforge.com/nfs-server-and-client-on-centos-7">https://www.howtoforge.com/nfs-server-and-client-on-centos-7</a>. Acessado em: 24 mar. 2020.</li>
+  <li>Volumes. Kubernetes. Disponível em: <a href="https://kubernetes.io/docs/concepts/storage/volumes/">https://kubernetes.io/docs/concepts/storage/volumes/</a>. Acessado em: 05 abr. 2020.</li>
+  <li>Service. Kubernetes. Disponível em: <a href="https://kubernetes.io/docs/concepts/services-networking/service/">https://kubernetes.io/docs/concepts/services-networking/service/</a>. Acessado em: 05 abr. 2020.</li>
+  <li>Configuring NFS Storage for Kubernetes. Docker Docs. Disponível em: <a href="https://docs.docker.com/ee/ucp/kubernetes/storage/use-nfs-volumes/">https://docs.docker.com/ee/ucp/kubernetes/storage/use-nfs-volumes/</a>. Acessado em: 05 abr. 2020.</li>
+  <li>Kubernetes/example/nfs. Github. Disponível em: <a href="https://github.com/kubernetes/examples/tree/master/staging/volumes/nfs">https://github.com/kubernetes/examples/tree/master/staging/volumes/nfs</a>. Acessado em: 05 abr. 2020.</li>
+  <li>HAPROXY INGRESS. Getting Started. Disponível em: <a href="https://haproxy-ingress.github.io/docs/getting-started/">https://haproxy-ingress.github.io/docs/getting-started/</a>. Acessado em: 08 abr. 2020.</li>
+  <li>nip.io. Disponível em: <a href="https://nip.io/">https://nip.io/</a>. Acessado em: 08 abr. 2020.</li>
+</ol>
+
+  </div><a class="u-url" href="/jekyll/update/2020/10/21/K8s-nfs.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Ana Amarante</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+         <!--  <li class="p-name">Ana Amarante</li> --><li><a class="u-email" href="mailto:">anapma22@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/anapma22"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">anapma22</span></a></li><li><a href="https://hub.docker.com/u/anapma22"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#dockerhub"></use></svg> <span class="username">anapma22</span></a></li><li><a href="https://www.linkedin.com/in/anapma22"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">anapma22</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Bacharel em Ciências e Tecnologia.    Graduanda em Eng. de Telecomunicações.     Especialista de TI - Redes e Infraestrutura.  </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

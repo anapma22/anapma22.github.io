@@ -1,4 +1,623 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-10-24T15:04:42-03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Ana Amarante</title><subtitle>Bacharel em Ciências e Tecnologia.    Graduanda em Eng. de Telecomunicações.     Especialista de TI - Redes e Infraestrutura.  </subtitle><author><name>Ana Amarante</name></author><entry><title type="html">Instalação do Kubernetes</title><link href="http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao.html" rel="alternate" type="text/html" title="Instalação do Kubernetes" /><published>2020-10-20T20:06:38-03:00</published><updated>2020-10-20T20:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao.html">&lt;p&gt;Este documento foi desenvolvido em &lt;strong&gt;março de 2020&lt;/strong&gt;, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-10-24T18:34:24-03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Ana Amarante</title><subtitle>Bacharel em Ciências e Tecnologia.    Graduanda em Eng. de Telecomunicações.     Especialista de TI - Redes e Infraestrutura.  </subtitle><author><name>Ana Amarante</name></author><entry><title type="html">NGINX com HTTPS no kubernetes</title><link href="http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs-http.html" rel="alternate" type="text/html" title="NGINX com HTTPS no kubernetes" /><published>2020-10-21T23:06:38-03:00</published><updated>2020-10-21T23:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs-http</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs-http.html">&lt;p&gt;Este documento foi desenvolvido em &lt;strong&gt;abril de 2020&lt;/strong&gt;, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.&lt;/p&gt;
+
+&lt;p&gt;O objetivo deste é ser um tutorial de instalação do HTTPS com o nginx. Os certificados serão gerados por meio do Let’s Encrypt.&lt;/p&gt;
+
+&lt;p&gt;Este tutorial abordará os tópicos listados abaixo:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Definição teórica&lt;/li&gt;
+  &lt;li&gt;Instalando o Cert-Manager&lt;/li&gt;
+  &lt;li&gt;Implantando o emissor de produção&lt;/li&gt;
+  &lt;li&gt;Configuração do yaml principal&lt;/li&gt;
+  &lt;li&gt;Configuração do yaml referente ao certificado&lt;/li&gt;
+  &lt;li&gt;Verificação do resultado&lt;/li&gt;
+  &lt;li&gt;Referências&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;definição-teórica&quot;&gt;Definição teórica&lt;/h2&gt;
+&lt;p&gt;O HTTPS é uma parte fundamental nos deploys de aplicações para  internet. Ele permite que as conexões entre cliente e servidor sejam encriptografadas. A sua instalação pode ser complexa, porém o Let’s Encrypt promove os certificados SSL/TLS e uma API para gerar esses certificados.&lt;/p&gt;
+
+&lt;p&gt;O HTTPS alinhado ao Kubernetes nos permite especificar toda nossa aplicação, no contexto de réplicas, rede e certificados, tudo como IaC.&lt;/p&gt;
+
+&lt;p&gt;A partir deste tutorial já temos o cluster configurado com o master e os workers, HAProxy e NFS configurado. Isso está explicado nos tutoriais anteriores.&lt;/p&gt;
+
+&lt;h2 id=&quot;instalando-o-cert-manager&quot;&gt;Instalando o Cert-Manager&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;Vamos instalar o cert-manager, ele é um serviço do Kubernetes que fornece certificados TLS gratuitos do Let’s Encrypt e outras autoridades certificadoras.&lt;/li&gt;
+  &lt;li&gt;Antes de iniciar a instalação do cert-manager, é preciso criar um namespace que ele possa operar:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl create namespace cert-manager
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Agora, vamos pegar a versão mais atualizada e estável do cert-manager com o yaml pronto. 
+Todos os recursos (CustomResourceDefinitions, cert-manager, namespace, e webhook component) estão definidos aqui.
+    &lt;ul&gt;
+      &lt;li&gt;Caso queira verificar se já existe outra versão mais atualizada, entre neste &lt;a href=&quot;https://github.com/jetstack/cert-manager/releases&quot;&gt;link&lt;/a&gt; e verifique. Em caso positivo, troque o “0.14.2” pelo número da nova versão no comando abaixo.
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.2/cert-manager.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;A partir do comando anterior, os pods devem ter sido criados. Use o comando abaixo para verificar.
+    &lt;ul&gt;
+      &lt;li&gt;É normal que o pod cert-manager-webhook não inicie junto com os outros, pode levar de 2 a 3 minutos para que ele mude o status para Running. Isso acontece em razão dos ativos TLS necessários para o webhook funcionem sejam provisionados.
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl get pods --namespace cert-manager
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/httpsk8s_1.png&quot; alt=&quot;Saída esperada do comando para verificação dos pods&quot; style=&quot;width:500px;height:90px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 1 - Saída esperada do comando para verificação dos pods. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;h2 id=&quot;implantando-o-emissor-de-produção&quot;&gt;Implantando o emissor de produção&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;Antes de começar a emitir certificados, você deve configurar pelo menos um recurso Issuer, o emissor ou ClusterIssuer no seu cluster. Ele vai especificar a autoridade certificadora da qual será possível obter os certificados x509 assinados. 
+Vamos criar o arquivo.
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vim prod_issuer.yaml 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Insira as definições abaixo no arquivo e salve em seguida. Se atente para o que está em negrito.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Será criado um objeto de ClusterIssuer chamado de letsencrypt-prod para usar o servidor de preparação do Let’s Encrypt. Será criado um Kubernetes Secret chamado letsencrypt-staging para armazenar a chave privada da conta ACME.&lt;/p&gt;
+
+&lt;p&gt;Também habilitamos o mecanismo de desafio do HTTP-01. Segundo o site do  Let’s Encrypt, este é o tipo de desafio mais comum hoje em dia. O Let’s Encrypt fornece um token para o seu cliente ACME, e o cliente ACME coloca um arquivo no servidor web em http: // &lt;YOUR_DOMAIN&gt; /.well-known/acme-challenge/ &lt;TOKEN&gt;. Este arquivo contém o token, além de uma impressão digital da chave da sua conta.&lt;/TOKEN&gt;&lt;/YOUR_DOMAIN&gt;&lt;/p&gt;
+
+&lt;p&gt;Depois que o cliente ACME informar o Let’s Encrypt que o arquivo está pronto, o  Let’s Crypt criptografará o arquivo. Se as verificações de validação obtiverem as respostas válidas do seu servidor web, a validação será considerada bem-sucedida e você poderá emitir seu certificado. Se as validações falharem, você precisará tentar novamente com um novo certificado.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  namespace: cert-manager
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory # The ACME server URL
+    email: seu_email@test.com # Email address used for ACME registration
+    privateKeySecretRef: # Name of a secret used to store the ACME account private key
+      name: letsencrypt-prod #isso é pedido no ingress
+    solvers: # Enable the HTTP-01 challenge provider
+    - http01:
+        ingress:
+          class: haproxy #muda de acordo do ingress que você tiver configurado anteriormente
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Aplique o issuer configurado.&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl create -f prod_issuer.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;configuração-do-yaml-principal&quot;&gt;Configuração do yaml principal&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;Agora vamos configurar o yaml que contém o deploy, service e ingress.
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vim lets-nginx.yaml 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Insira as definições abaixo e salve o arquivo.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;apiVersion: apps/v1
+kind: Deployment #deploy the Ingress Controller pod
+metadata:
+  labels:
+    run: nginx
+  name: lets-nginx
+#  namespace: default #which to place the resources
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: nginx
+  template:
+    metadata:
+      labels:
+        run: nginx
+    spec:
+      volumes:
+      - name: nfs1
+        persistentVolumeClaim:
+          claimName: nfs-pvc
+      containers:
+      - image: nginx
+        imagePullPolicy: Always
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: nfs1 #mesmo nome do volume criado neste deploy
+          mountPath: /usr/share/nginx/html #path que será criado dentro do container
+#---
+apiVersion: v1
+kind: Service #allow traffic to reach the Ingress Controller
+metadata:
+  labels:
+    run: nginx
+  name: lets-nginx #nome do service que deve ter o mesmo valor que serviceName no Ingress, caso contrário o Endpoint não sera encontrado #namespace: default #which to place the resources
+spec:
+  selector:
+    run: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+#---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx
+  annotations:
+   # kubernetes.io/ingress.class: &quot;haproxy&quot;
+    cert-manager.io/cluster-issuer: &quot;letsencrypt-prod&quot; #foi setado no  prod_issuer.yaml
+    certmanager.k8s.io/acme-challenge-type: http01
+#  namespace: cert-manager
+spec:
+  tls:
+  - hosts:
+    - nginx-lets.34.66.16.93.nip.io  #altere com seu IP
+    secretName: lets-tls
+  rules:
+  - host: nginx-lets.34.66.16.93.nip.io #altere com seu IP
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: lets-nginx
+          servicePort: 80
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Aplique as alterações:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl apply -f lets-nginx.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&quot;configuração-do-yaml-referente-ao-certificado&quot;&gt;Configuração do yaml referente ao certificado&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;Por fim e não menos importante, vamos alterar o arquivo chave para o certificado.
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vim cert.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Insira o que está abaixo e salve o arquivo.
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: certificate-nginx
+  namespace: default
+spec:
+  secretName: nginx-tls
+  duration: 24h
+  renewBefore: 12h
+  commonName: nginx-lets.34.66.16.93.nip.io #altere para seu IP
+  dnsNames:
+  - nginx-lets.34.66.16.93.nip.io  #altere para seu domínio
+  issuerRef:
+ name: letsencrypt-prod
+ kind: ClusterIssuer
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: certificate-nginx
+  namespace: cert-manager
+spec:
+  secretName: nginx-tls
+  duration: 24h
+  renewBefore: 12h
+  commonName: nfs-nginx.35.226.108.169.nip.io #altere para seu IP
+  dnsNames:
+  - nginx-lets.34.66.16.93.nip.io #altere para seu domínio
+  issuerRef:
+ name: letsencrypt-prod
+ kind: ClusterIssuer
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;p&gt;Aplique as alterações:&lt;/p&gt;
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl create -f cert.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;h2 id=&quot;verificação-do-resultado&quot;&gt;Verificação do resultado&lt;/h2&gt;
+    &lt;p&gt;Pode demorar alguns minutos, mas você verá que o certificado foi criado corretamente. Primeiro vamos verificar o clusterissuers:&lt;/p&gt;
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl get clusterissuers
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/httpsk8s_2.png&quot; alt=&quot;Saída esperada do comando para verificação dos clusterissuers&quot; style=&quot;width:240px;height:60px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 2 - Saída esperada do comando para verificação dos clusterissuers. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+&lt;p&gt;Agora, vamos verificar o certificaterequest. A FIgura 3 é o final do comando abaixo:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl describe certificaterequest
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/httpsk8s_3.png&quot; alt=&quot;Saída esperada do  final do comando para verificação do certificaterequest&quot; style=&quot;width:500px;height:70px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 3 - Saída esperada do  final do comando para verificação do certificaterequest. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Após isso, você já pode ir no seu host e verificar se o acesso acontece com HTTPS por meio de um certificado válido.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/httpsk8s_4.png&quot; alt=&quot;Host setado nos yamls acessando com HTTPS&quot; style=&quot;width:700px;height:400px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 4 - Host setado nos yamls acessando com HTTPS. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;h4 id=&quot;referências&quot;&gt;Referências&lt;/h4&gt;
+&lt;ol&gt;
+  &lt;li&gt;Como configurar um Nginx Ingress com Cert-Manager no Kubernetes da plataforma DigitalOcean. Disponível em: &lt;a href=&quot;https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-with-cert-manager-on-digitalocean-kubernetes-pt&quot;&gt;https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-with-cert-manager-on-digitalocean-kubernetes-pt&lt;/a&gt;. Acessado em: 19 abr. 2020.&lt;/li&gt;
+  &lt;li&gt;Kubernetes. cert-manager. Disponível em: &lt;a href=&quot;https://cert-manager.io/docs/installation/kubernetes/&quot;&gt;https://cert-manager.io/docs/installation/kubernetes/&lt;/a&gt;. Acessado em: 19 abr. 2020.&lt;/li&gt;
+  &lt;li&gt;HTTP01. cert-manager. Disponível em: &lt;a href=&quot;https://letsencrypt.org/docs/challenge-types/#http-01-challenge&quot;&gt;https://letsencrypt.org/docs/challenge-types/#http-01-challenge&lt;/a&gt;. Acessado em: 19 abr. 2020.&lt;/li&gt;
+  &lt;li&gt;Challenge Types. Let’s Encrypt. Disponível em: &amp;lt;https://letsencrypt.org/docs/challenge-types/#http-01-challenge. Acessado em: 19 abr. 2020.&lt;/li&gt;
+&lt;/ol&gt;</content><author><name>Ana Amarante</name></author><summary type="html">Este documento foi desenvolvido em abril de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.</summary></entry><entry><title type="html">NFS com NGINX no kubernetes</title><link href="http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs.html" rel="alternate" type="text/html" title="NFS com NGINX no kubernetes" /><published>2020-10-21T20:06:38-03:00</published><updated>2020-10-21T20:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs.html">&lt;p&gt;Este documento foi desenvolvido em &lt;strong&gt;março de 2020&lt;/strong&gt;, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.&lt;/p&gt;
+
+&lt;p&gt;O objetivo deste tutorial é a instalação do NFS no Kubernetes.&lt;/p&gt;
+
+&lt;p&gt;Este tutorial abordará os tópicos listados abaixo:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Definição teórica&lt;/li&gt;
+  &lt;li&gt;NFS server&lt;/li&gt;
+  &lt;li&gt;NFS client&lt;/li&gt;
+  &lt;li&gt;NFS no kubernetes&lt;/li&gt;
+  &lt;li&gt;HAProxy Ingress Controller&lt;/li&gt;
+  &lt;li&gt;Deploy do NGINX&lt;/li&gt;
+  &lt;li&gt;Erros cometidos durante este trabalho&lt;/li&gt;
+  &lt;li&gt;Referências&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;definição-teórica&quot;&gt;Definição teórica&lt;/h2&gt;
+&lt;p&gt;Conforme está dito na documentação oficial do Kubernets: Um volume nfs permite que um compartilhamento NFS (Network File System) existente seja montado no seu Pod. O conteúdo de um volume nfs é preservado e o volume é apenas desmontado. Isso significa que um volume NFS pode ser preenchido previamente com dados e que esses dados podem ser “transferidos” entre os Pods. O NFS pode ser montado por vários gravadores simultaneamente.&lt;/p&gt;
+
+&lt;p&gt;O Kubernetes usa o service como uma maneira abstrata de expor um aplicativo em execução em um conjunto de pods como um serviço de rede. O que faremos aqui será a configuração de um service para um volume persistente ou PersistentVolume (PV).&lt;/p&gt;
+
+&lt;p&gt;É interessante observar também outro conceito de volumes que utilizaremos neste tutorial, que é o de PersistentVolumeClaim (PVC). Ele é usado para montar um PV dentro de um pod, já que permite que o PV seja utilizado de forma a independer de qualquer pod, isso alinhado ao NFS Server nos permite trabalhar com os arquivos de maneira a não se preocupar com a efemeridade dos pods.&lt;/p&gt;
+
+&lt;h2 id=&quot;nfs-server&quot;&gt;NFS server&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;A máquina que será hospedado o NFS Server pode ser o master ou pode ser uma máquina exclusiva para esse servidor, o último caso é o mais indicado. 
+Neste tutorial, utilizamos o centos7. Com uma máquina com disco de 10GB e vCPUI.&lt;/li&gt;
+  &lt;li&gt;Instalação do NFS:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;yum install nfs-utils -y
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;h3 id=&quot;diretório-a-ser-compartilhado&quot;&gt;Diretório a ser compartilhado&lt;/h3&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Criação do diretório que será compartilhado pelo NFS:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mkdir /var/nfsshare
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Definir permissões, no caso do &lt;em&gt;chmod&lt;/em&gt; será atribuído a permissão de leitura, escrita e execução para o dono da pasta (7), leitura e execução para usuários do mesmo grupo (5) e também para outros usuários (5). Já o chown, define que  &lt;em&gt;/var/nfsshare&lt;/em&gt; pertence a &lt;em&gt;nfsnobody&lt;/em&gt; e ao grupo &lt;em&gt;nfsnobody&lt;/em&gt;.
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;chmod -R 755 /var/nfsshare
+chown nfsnobody:nfsnobody /var/nfsshare
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Caso queria compartilhar outro diretório como /home, as permissões deste diretório não devem ser alteradas.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Configurar os serviços, conforme abaixo:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;systemctl enable rpcbind
+systemctl enable nfs-server
+systemctl enable nfs-lock
+systemctl enable nfs-idmap
+systemctl start rpcbind
+systemctl start nfs-server
+systemctl start nfs-lock
+systemctl start nfs-idmap
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Agora, compartilharemos o diretório NFS pela rede da seguinte maneira:
+    &lt;ul&gt;
+      &lt;li&gt;Abrir o arquivo que será responsável por setar as máquinas que têm acesso à partilha.
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vim /etc/exports
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Criaremos um ponto de compartilhamento e &lt;em&gt;/var/nfsshare&lt;/em&gt;. Edite o arquivo &lt;em&gt;/etc/exports&lt;/em&gt; da seguinte maneira:
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/var/nfsshare    *(rw,sync,no_root_squash,no_all_squash)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+      &lt;li&gt;O * representa que a pasta &lt;em&gt;/var/nfsshare&lt;/em&gt; ficará acessível para qualquer cliente, caso queira definir os clientes, pode inserir os IPs nesse arquivo.&lt;/li&gt;
+      &lt;li&gt;Para conhecimento, os parâmetros estão detalhados abaixo:&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;ul&gt;
+      &lt;li&gt;rw → Permite leitura e escrita;&lt;/li&gt;
+      &lt;li&gt;sync→ NFS Responde às solicitações somente após as alterações terem sido confirmadas no armazenamento estável;&lt;/li&gt;
+      &lt;li&gt;no_root_squash → Uma técnica para anular a escalação de privilégios na máquina cliente.&lt;/li&gt;
+      &lt;li&gt;no_all_squash → Similar ao no_root_squash, mas para usuários não roots.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Podemos reiniciar o NFS:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;systemctl restart nfs-server
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Configurar o firewall:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;firewall-cmd --permanent --zone=public --add-service=nfs
+firewall-cmd --permanent --zone=public --add-service=mountd
+firewall-cmd --permanent --zone=public --add-service=rpc-bind
+firewall-cmd --reload
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;nfs-client&quot;&gt;NFS client&lt;/h2&gt;
+&lt;p&gt;Essa configuração é feita em cada máquina.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Instalar o NF:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;yum install nfs-utils -y
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Criação do diretório que será compartilhado pelo NFS:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mkdir -p /mnt/nfs/var/nfsshare
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;O próximo passo será montar os diretórios compartilhados na máquina do cliente, como mostrado abaixo:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mount -t nfs 10.128.0.6:/var/nfsshare /mnt/nfs/var/nfsshare/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Agora que o NFS já foi conectado é hora de fazer uma verificação cruzada:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;df -kh
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;ol&gt;
+  &lt;li&gt;Checar as permissões de leitura e escrita por meio da inserção de um arquivo:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;touch /mnt/nfs/var/nfsshare/test_nfs
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Após isso verifique no server se o arquivo foi criado.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Para evitar que tenhamos que montar novamente o compartilhamento NFS no cliente após cada reinicialização. Podemos configurar, mas que ele fique permanentemente, adicionando o compartilhamento NFS no /etc/fstab, conforme está mostrado abaixo.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vim /etc/fstab
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;ol&gt;
+  &lt;li&gt;Inserir os parâmetros no arquivo e salvar:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[...]
+10.128.0.6:/var/nfsshare   /mnt/nfs/var/nfsshare   nfs defaults 0 0
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Onde o IP inserido é o do NFS server.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Agora, podemos reiniciar a máquina para finalizar a configuração e garantir um ponto de montagem permanente do NFS.
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;reboot
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;nfs-no-kubernetes&quot;&gt;NFS no kubernetes&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;Agora, que o NFS Server e Client já está configurado, temos duas opções para montar o compartilhamento existente.
+    &lt;ul&gt;
+      &lt;li&gt;Na primeira, o compartilhamento do NFS é configurado junto com a definição dos pods. Nesta opção o compartilhamento é manual, por isso não trabalharemos com ela.&lt;/li&gt;
+      &lt;li&gt;Na segunda, o compartilhamento é definido como um objeto cluster por meio de PV, onde o cluster define um intervalo de compartilhamento do NFS para os inquilinos solicitarem e consumirem. Usaremos esta abordagem.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Nos yamls abaixo será abordado sobre dois conceitos, &lt;em&gt;accessModes&lt;/em&gt; e &lt;em&gt;persistentVolumeReclaimPolicy&lt;/em&gt;.
+Modos de acessos:
+    &lt;ul&gt;
+      &lt;li&gt;ReadWriteOnce – o volume será montado como read-write por um único node.&lt;/li&gt;
+      &lt;li&gt;ReadOnlyMany –  o volume será montado como read-only por vários nodes.&lt;/li&gt;
+      &lt;li&gt;ReadWriteMany –  o volume será montado como read-write por vários nodes.
+Reclaim é a política usada para definir o que o cluster deve fazer depois que um PV for liberado de um claim.&lt;/li&gt;
+      &lt;li&gt;Retain - permite a recuperação manual do recurso. Quando o PVC é excluído, o PV ainda existe e o volume é considerado “liberado”.&lt;/li&gt;
+      &lt;li&gt;Delete - para plug-ins de volume que oferecem suporte à política de recuperação. A exclusão remove o objeto PV do Kubernetes, bem como o ativo de armazenamento associado na infraestrutura externa (e.g. Azure, AWS, GCE ou Cinder).&lt;/li&gt;
+      &lt;li&gt;Retain (deprecated) - executa uma limpeza básica (rm -rf / volume / *) no volume e o torna disponível novamente para uma nova reivindicação.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;expondo-compartilhamentos-nfs-como-um-objeto-de-cluster&quot;&gt;Expondo compartilhamentos NFS como um objeto de cluster&lt;/h3&gt;
+
+&lt;h4 id=&quot;pv&quot;&gt;PV&lt;/h4&gt;
+&lt;ol&gt;
+  &lt;li&gt;Neste método, usaremos os conceitos expostos anteriormente de PV e PVC, eles serão responsáveis por gerenciar e liberar o acesso ao compartilhamento do NFS.&lt;/li&gt;
+  &lt;li&gt;Criar o arquivo para definição do PV à nível do cluster.
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vim nfs-pv.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Inserir o yaml abaixo no arquivo e salvar.
+```
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-pv # Altere com o nome que deseja para o PV
+  labels:
+ name: nfs-pv 
+spec:
+  storageClassName: manual
+  capacity:
+ storage: 300Mi # Altere para ser o tamanho do volume a ser compartilhado
+  accessModes:
+    &lt;ul&gt;
+      &lt;li&gt;ReadWriteMany # Definição dos acessos
+  persistentVolumeReclaimPolicy: Recycle # Política do reclaim 
+  nfs:
+ server: 10.128.0.6 # Altere com o IP do seu NFS server
+ path: “/var/nfsshare” # Altere para o local de sua preferência
+```&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Aplicar o pv-nfs.yaml:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl apply -f nfs-pv.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Verificar se o volume foi criado corretamente:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl get pv
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;pvc&quot;&gt;PVC&lt;/h4&gt;
+&lt;ol&gt;
+  &lt;li&gt;Criar o arquivo para definição do PV à nível do cluster.
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vim nfs-pvc.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Inserir o yaml abaixo no arquivo e salvar.
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc # Altere com o nome que deseja para o PVC
+spec:
+  storageClassName: manual
+  accessModes:
+    &lt;ul&gt;
+      &lt;li&gt;ReadWriteMany # Definição dos acessos
+  resources:
+ requests:
+storage: 150Mi # Tamanho do volume requisitado
+```&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Aplicar o pv-nfs.yaml:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl apply -f nfs-pvc.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Verificar se o volume foi criado corretamente:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl get pvc
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Verificar se o pv mudou de status Available para Bound:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl get pv
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;haproxy-ingress-controller&quot;&gt;HAProxy Ingress Controller&lt;/h2&gt;
+&lt;p&gt;É esperado que o kubernetes trabalhe com um tráfego considerável, além de se tratar de um ambiente ser altamente dinâmico, devido a criação, deletamento e realocação de pods. Para isso utilizamos o HAProxy.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Crie os recursos:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl create -f https://haproxy-ingress.github.io/resources/haproxy-ingress.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;O controlador ainda não está em execução. Hora de editar qualquer valor padrão, por exemplo, a versão da imagem do controlador:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl -n ingress-controller edit configmap haproxy-ingress
+kubectl -n ingress-controller edit daemonset haproxy-ingress
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Rotule pelo menos um nó:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl label node master-1 role=ingress-controller
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Agora o HAProxy Ingress deve estar em funcionamento:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl -n ingress-controller get pod
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/nfs_1.png&quot; alt=&quot;Saída esperada com o HAProxy Ingress up&quot; style=&quot;width:320px;height:50px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 1 - Saída esperada com o HAProxy Ingress up. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;h2 id=&quot;deploy-do-nginx&quot;&gt;Deploy do NGINX&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;Criar o arquivo nfs-nginx.yaml:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vim nfs-nginx.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Inserir no arquivo e salvar:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;apiVersion: apps/v1
+kind: Deployment # Deploy do pod
+metadata:
+  labels:
+    run: nginx
+  name: nfs-nginx
+  namespace: default 
+spec: 
+  replicas: 1 
+  selector:
+    matchLabels:
+      run: nginx
+  template:
+    metadata:
+      labels:
+        run: nginx
+    spec:
+      volumes:
+      - name: nfs1 # Nome do volume
+        persistentVolumeClaim:
+          claimName: nfs-pvc # Nome do pvc criado anteriormente
+      containers:
+      - image: nginx
+        imagePullPolicy: Always
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: nfs1 # Mesmo nome do volume criado neste deploy
+          mountPath: /usr/share/nginx/html # Path que será criado dentro do container    
+#---
+apiVersion: v1
+kind: Service # Permite que o tráfego seja passado para o Ingress Controller
+metadata:
+  labels:
+    run: nginx
+  name: nfs-nginx # Nome do service que deve ter o mesmo valor que serviceName no Ingress, caso contrário o Endpoint não será encontrado
+ spec:
+  selector:
+    run: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+#---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx # Altere com o nome do ingress
+  namespace: default
+spec:
+  rules:
+  - host: nfs-nginx.35.222.201.213.nip.io # Altere com o seu host nip.io para mais informações
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nfs-nginx # Altere com o nome do service 
+          servicePort: 80
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Aplique o yaml criado:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl apply -f nfs-nginx.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Após isso vamos inserir o index.html dentro do NFS Server (&lt;em&gt;/var/nfsshar&lt;/em&gt;), pois essa pasta foi mapeada para dentro dos pods (&lt;em&gt;/usr/share/nginx/html&lt;/em&gt;):
+    &lt;ul&gt;
+      &lt;li&gt;Entre no NFS Server e vá para o diretório &lt;em&gt;/var/nfsshar&lt;/em&gt;:
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vim index.html
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Coloque alguma informação no arquivo e salve.&lt;/li&gt;
+      &lt;li&gt;Ao acessar o endereço salvo no ingress, é possível vê a página, como esperado:&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/nfs_2.png&quot; alt=&quot; index.html no NFS Server&quot; style=&quot;width:200px;height:70px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 2 -  index.html no NFS Server. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;É possível verificar no worker, o mapeamento feito pelo NFS:&lt;/p&gt;
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/nfs_3.png&quot; alt=&quot;Mapeamento do NFS no worker,&quot; style=&quot;width:900px;height:70px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 3 - Mapeamento do NFS no worker, sem nada ter sido configurado lá. Fonte: Autoria própia &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Como foi visto, o arquivo criado dentro do NFS Server foi lido pelos pods e a página foi exibida corretamente.&lt;/p&gt;
+
+&lt;h2 id=&quot;erros-cometidos-durante-este-trabalho&quot;&gt;Erros cometidos durante este trabalho&lt;/h2&gt;
+&lt;p&gt;O objetivo desta seção é apontar os erros que enfrentei, caso você passe por eles já saberá a solução facilmente.&lt;/p&gt;
+
+&lt;p&gt;O nfs-nginx.yaml (com o deploy, service e ingress) estava com a identação incorreta e inicialmente a declaração dos volumes no lugar errado, dentro dos containers (o que é dentro do containers é o volumeMounts). O erro aconteceu por falta de atenção e a solução foi tomada em etapas, verifiquei que tinha algo de errado com os volumes, pois ao comentar apenas aquela parte o nginx funcionava.&lt;/p&gt;
+
+&lt;p&gt;Outro erro foi acreditar que o index.html deveria está dentro dos pods. Estava entrando nos pods e colocava o arquivo dentro /usr/share/nginx/html, porém percebi que isto não fazia sentido, visto que os pods são efêmeros, então percebi que o local correto seria no NFS Server que é na pasta mapeada.&lt;/p&gt;
+
+&lt;h4 id=&quot;referências&quot;&gt;Referências&lt;/h4&gt;
+&lt;ol&gt;
+  &lt;li&gt;NFS Server and Client Installation on CentOS 7. How to Forge. Disponível em: &lt;a href=&quot;https://www.howtoforge.com/nfs-server-and-client-on-centos-7&quot;&gt;https://www.howtoforge.com/nfs-server-and-client-on-centos-7&lt;/a&gt;. Acessado em: 24 mar. 2020.&lt;/li&gt;
+  &lt;li&gt;Volumes. Kubernetes. Disponível em: &lt;a href=&quot;https://kubernetes.io/docs/concepts/storage/volumes/&quot;&gt;https://kubernetes.io/docs/concepts/storage/volumes/&lt;/a&gt;. Acessado em: 05 abr. 2020.&lt;/li&gt;
+  &lt;li&gt;Service. Kubernetes. Disponível em: &lt;a href=&quot;https://kubernetes.io/docs/concepts/services-networking/service/&quot;&gt;https://kubernetes.io/docs/concepts/services-networking/service/&lt;/a&gt;. Acessado em: 05 abr. 2020.&lt;/li&gt;
+  &lt;li&gt;Configuring NFS Storage for Kubernetes. Docker Docs. Disponível em: &lt;a href=&quot;https://docs.docker.com/ee/ucp/kubernetes/storage/use-nfs-volumes/&quot;&gt;https://docs.docker.com/ee/ucp/kubernetes/storage/use-nfs-volumes/&lt;/a&gt;. Acessado em: 05 abr. 2020.&lt;/li&gt;
+  &lt;li&gt;Kubernetes/example/nfs. Github. Disponível em: &lt;a href=&quot;https://github.com/kubernetes/examples/tree/master/staging/volumes/nfs&quot;&gt;https://github.com/kubernetes/examples/tree/master/staging/volumes/nfs&lt;/a&gt;. Acessado em: 05 abr. 2020.&lt;/li&gt;
+  &lt;li&gt;HAPROXY INGRESS. Getting Started. Disponível em: &lt;a href=&quot;https://haproxy-ingress.github.io/docs/getting-started/&quot;&gt;https://haproxy-ingress.github.io/docs/getting-started/&lt;/a&gt;. Acessado em: 08 abr. 2020.&lt;/li&gt;
+  &lt;li&gt;nip.io. Disponível em: &lt;a href=&quot;https://nip.io/&quot;&gt;https://nip.io/&lt;/a&gt;. Acessado em: 08 abr. 2020.&lt;/li&gt;
+&lt;/ol&gt;</content><author><name>Ana Amarante</name></author><summary type="html">Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.</summary></entry><entry><title type="html">Instalação do Kubernetes</title><link href="http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao.html" rel="alternate" type="text/html" title="Instalação do Kubernetes" /><published>2020-10-20T20:06:38-03:00</published><updated>2020-10-20T20:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/10/20/K8s-Instalacao.html">&lt;p&gt;Este documento foi desenvolvido em &lt;strong&gt;março de 2020&lt;/strong&gt;, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.&lt;/p&gt;
 
 &lt;p&gt;O objetivo deste tutorial é a instalação do Kubernetes.&lt;/p&gt;
 

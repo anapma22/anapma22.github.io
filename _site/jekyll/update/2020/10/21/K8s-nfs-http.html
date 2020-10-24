@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>NGINX com HTTPS no kubernetes | Ana Amarante</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="NGINX com HTTPS no kubernetes" />
+<meta name="author" content="Ana Amarante" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Este documento foi desenvolvido em abril de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino." />
+<meta property="og:description" content="Este documento foi desenvolvido em abril de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino." />
+<link rel="canonical" href="http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs-http.html" />
+<meta property="og:url" content="http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs-http.html" />
+<meta property="og:site_name" content="Ana Amarante" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-10-21T23:06:38-03:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs-http.html"},"author":{"@type":"Person","name":"Ana Amarante"},"headline":"NGINX com HTTPS no kubernetes","dateModified":"2020-10-21T23:06:38-03:00","datePublished":"2020-10-21T23:06:38-03:00","description":"Este documento foi desenvolvido em abril de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.","url":"http://localhost:4000/jekyll/update/2020/10/21/K8s-nfs-http.html","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Ana Amarante" /><!-- Favicon head tag -->
+    <link rel="icon" type="imagem/png" href="/images/favicon.png">
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Ana Amarante</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link " href="/jekyll/update/2020/10/21/K8s-nfs-http.html">NGINX com HTTPS no kubernetes</a><a class="page-link " href="/jekyll/update/2020/10/21/K8s-nfs.html">NFS com NGINX no kubernetes</a><a class="page-link " href="/jekyll/update/2020/10/20/K8s-Instalacao.html">Instalação do Kubernetes</a><a class="page-link " href="/jekyll/update/2020/10/20/K8s-Minikube.html">Instalar o minikube em uma instância Gcloud</a><a class="page-link " href="/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html">Conceitos básicos do Kubernetes</a></div>
+
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">NGINX com HTTPS no kubernetes</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-10-21T23:06:38-03:00" itemprop="datePublished">Oct 21, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Este documento foi desenvolvido em <strong>abril de 2020</strong>, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.</p>
+
+<p>O objetivo deste é ser um tutorial de instalação do HTTPS com o nginx. Os certificados serão gerados por meio do Let’s Encrypt.</p>
+
+<p>Este tutorial abordará os tópicos listados abaixo:</p>
+<ol>
+  <li>Definição teórica</li>
+  <li>Instalando o Cert-Manager</li>
+  <li>Implantando o emissor de produção</li>
+  <li>Configuração do yaml principal</li>
+  <li>Configuração do yaml referente ao certificado</li>
+  <li>Verificação do resultado</li>
+  <li>Referências</li>
+</ol>
+
+<h2 id="definição-teórica">Definição teórica</h2>
+<p>O HTTPS é uma parte fundamental nos deploys de aplicações para  internet. Ele permite que as conexões entre cliente e servidor sejam encriptografadas. A sua instalação pode ser complexa, porém o Let’s Encrypt promove os certificados SSL/TLS e uma API para gerar esses certificados.</p>
+
+<p>O HTTPS alinhado ao Kubernetes nos permite especificar toda nossa aplicação, no contexto de réplicas, rede e certificados, tudo como IaC.</p>
+
+<p>A partir deste tutorial já temos o cluster configurado com o master e os workers, HAProxy e NFS configurado. Isso está explicado nos tutoriais anteriores.</p>
+
+<h2 id="instalando-o-cert-manager">Instalando o Cert-Manager</h2>
+<ol>
+  <li>Vamos instalar o cert-manager, ele é um serviço do Kubernetes que fornece certificados TLS gratuitos do Let’s Encrypt e outras autoridades certificadoras.</li>
+  <li>Antes de iniciar a instalação do cert-manager, é preciso criar um namespace que ele possa operar:
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create namespace cert-manager
+</code></pre></div>    </div>
+  </li>
+  <li>Agora, vamos pegar a versão mais atualizada e estável do cert-manager com o yaml pronto. 
+Todos os recursos (CustomResourceDefinitions, cert-manager, namespace, e webhook component) estão definidos aqui.
+    <ul>
+      <li>Caso queira verificar se já existe outra versão mais atualizada, entre neste <a href="https://github.com/jetstack/cert-manager/releases">link</a> e verifique. Em caso positivo, troque o “0.14.2” pelo número da nova versão no comando abaixo.
+        <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.14.2/cert-manager.yaml
+</code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+  <li>A partir do comando anterior, os pods devem ter sido criados. Use o comando abaixo para verificar.
+    <ul>
+      <li>É normal que o pod cert-manager-webhook não inicie junto com os outros, pode levar de 2 a 3 minutos para que ele mude o status para Running. Isso acontece em razão dos ativos TLS necessários para o webhook funcionem sejam provisionados.
+        <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods --namespace cert-manager
+</code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+</ol>
+<p align="center">
+<img src="/images/httpsk8s_1.png" alt="Saída esperada do comando para verificação dos pods" style="width:500px;height:90px;" />
+<figcaption align="center">Figura 1 - Saída esperada do comando para verificação dos pods. Fonte: Autoria própia </figcaption>
+</p>
+
+<h2 id="implantando-o-emissor-de-produção">Implantando o emissor de produção</h2>
+<ol>
+  <li>Antes de começar a emitir certificados, você deve configurar pelo menos um recurso Issuer, o emissor ou ClusterIssuer no seu cluster. Ele vai especificar a autoridade certificadora da qual será possível obter os certificados x509 assinados. 
+Vamos criar o arquivo.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim prod_issuer.yaml 
+</code></pre></div>    </div>
+  </li>
+  <li>Insira as definições abaixo no arquivo e salve em seguida. Se atente para o que está em negrito.</li>
+</ol>
+
+<p>Será criado um objeto de ClusterIssuer chamado de letsencrypt-prod para usar o servidor de preparação do Let’s Encrypt. Será criado um Kubernetes Secret chamado letsencrypt-staging para armazenar a chave privada da conta ACME.</p>
+
+<p>Também habilitamos o mecanismo de desafio do HTTP-01. Segundo o site do  Let’s Encrypt, este é o tipo de desafio mais comum hoje em dia. O Let’s Encrypt fornece um token para o seu cliente ACME, e o cliente ACME coloca um arquivo no servidor web em http: // <YOUR_DOMAIN> /.well-known/acme-challenge/ <TOKEN>. Este arquivo contém o token, além de uma impressão digital da chave da sua conta.</TOKEN></YOUR_DOMAIN></p>
+
+<p>Depois que o cliente ACME informar o Let’s Encrypt que o arquivo está pronto, o  Let’s Crypt criptografará o arquivo. Se as verificações de validação obtiverem as respostas válidas do seu servidor web, a validação será considerada bem-sucedida e você poderá emitir seu certificado. Se as validações falharem, você precisará tentar novamente com um novo certificado.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  namespace: cert-manager
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory # The ACME server URL
+    email: seu_email@test.com # Email address used for ACME registration
+    privateKeySecretRef: # Name of a secret used to store the ACME account private key
+      name: letsencrypt-prod #isso é pedido no ingress
+    solvers: # Enable the HTTP-01 challenge provider
+    - http01:
+        ingress:
+          class: haproxy #muda de acordo do ingress que você tiver configurado anteriormente
+</code></pre></div></div>
+<p>Aplique o issuer configurado.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create -f prod_issuer.yaml
+</code></pre></div></div>
+
+<h2 id="configuração-do-yaml-principal">Configuração do yaml principal</h2>
+<ol>
+  <li>Agora vamos configurar o yaml que contém o deploy, service e ingress.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim lets-nginx.yaml 
+</code></pre></div>    </div>
+  </li>
+  <li>Insira as definições abaixo e salve o arquivo.</li>
+</ol>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apiVersion: apps/v1
+kind: Deployment #deploy the Ingress Controller pod
+metadata:
+  labels:
+    run: nginx
+  name: lets-nginx
+#  namespace: default #which to place the resources
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: nginx
+  template:
+    metadata:
+      labels:
+        run: nginx
+    spec:
+      volumes:
+      - name: nfs1
+        persistentVolumeClaim:
+          claimName: nfs-pvc
+      containers:
+      - image: nginx
+        imagePullPolicy: Always
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: nfs1 #mesmo nome do volume criado neste deploy
+          mountPath: /usr/share/nginx/html #path que será criado dentro do container
+#---
+apiVersion: v1
+kind: Service #allow traffic to reach the Ingress Controller
+metadata:
+  labels:
+    run: nginx
+  name: lets-nginx #nome do service que deve ter o mesmo valor que serviceName no Ingress, caso contrário o Endpoint não sera encontrado #namespace: default #which to place the resources
+spec:
+  selector:
+    run: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+#---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx
+  annotations:
+   # kubernetes.io/ingress.class: "haproxy"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod" #foi setado no  prod_issuer.yaml
+    certmanager.k8s.io/acme-challenge-type: http01
+#  namespace: cert-manager
+spec:
+  tls:
+  - hosts:
+    - nginx-lets.34.66.16.93.nip.io  #altere com seu IP
+    secretName: lets-tls
+  rules:
+  - host: nginx-lets.34.66.16.93.nip.io #altere com seu IP
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: lets-nginx
+          servicePort: 80
+</code></pre></div></div>
+<p>Aplique as alterações:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply -f lets-nginx.yaml
+</code></pre></div></div>
+<h2 id="configuração-do-yaml-referente-ao-certificado">Configuração do yaml referente ao certificado</h2>
+<ol>
+  <li>Por fim e não menos importante, vamos alterar o arquivo chave para o certificado.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim cert.yaml
+</code></pre></div>    </div>
+  </li>
+  <li>Insira o que está abaixo e salve o arquivo.
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: certificate-nginx
+  namespace: default
+spec:
+  secretName: nginx-tls
+  duration: 24h
+  renewBefore: 12h
+  commonName: nginx-lets.34.66.16.93.nip.io #altere para seu IP
+  dnsNames:
+  - nginx-lets.34.66.16.93.nip.io  #altere para seu domínio
+  issuerRef:
+ name: letsencrypt-prod
+ kind: ClusterIssuer
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: certificate-nginx
+  namespace: cert-manager
+spec:
+  secretName: nginx-tls
+  duration: 24h
+  renewBefore: 12h
+  commonName: nfs-nginx.35.226.108.169.nip.io #altere para seu IP
+  dnsNames:
+  - nginx-lets.34.66.16.93.nip.io #altere para seu domínio
+  issuerRef:
+ name: letsencrypt-prod
+ kind: ClusterIssuer
+</code></pre></div>    </div>
+    <p>Aplique as alterações:</p>
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create -f cert.yaml
+</code></pre></div>    </div>
+    <h2 id="verificação-do-resultado">Verificação do resultado</h2>
+    <p>Pode demorar alguns minutos, mas você verá que o certificado foi criado corretamente. Primeiro vamos verificar o clusterissuers:</p>
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get clusterissuers
+</code></pre></div>    </div>
+  </li>
+</ol>
+<p align="center">
+<img src="/images/httpsk8s_2.png" alt="Saída esperada do comando para verificação dos clusterissuers" style="width:240px;height:60px;" />
+<figcaption align="center">Figura 2 - Saída esperada do comando para verificação dos clusterissuers. Fonte: Autoria própia </figcaption>
+</p>
+<p>Agora, vamos verificar o certificaterequest. A FIgura 3 é o final do comando abaixo:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe certificaterequest
+</code></pre></div></div>
+<p align="center">
+<img src="/images/httpsk8s_3.png" alt="Saída esperada do  final do comando para verificação do certificaterequest" style="width:500px;height:70px;" />
+<figcaption align="center">Figura 3 - Saída esperada do  final do comando para verificação do certificaterequest. Fonte: Autoria própia </figcaption>
+</p>
+
+<p>Após isso, você já pode ir no seu host e verificar se o acesso acontece com HTTPS por meio de um certificado válido.</p>
+
+<p align="center">
+<img src="/images/httpsk8s_4.png" alt="Host setado nos yamls acessando com HTTPS" style="width:700px;height:400px;" />
+<figcaption align="center">Figura 4 - Host setado nos yamls acessando com HTTPS. Fonte: Autoria própia </figcaption>
+</p>
+
+<h4 id="referências">Referências</h4>
+<ol>
+  <li>Como configurar um Nginx Ingress com Cert-Manager no Kubernetes da plataforma DigitalOcean. Disponível em: <a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-with-cert-manager-on-digitalocean-kubernetes-pt">https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-with-cert-manager-on-digitalocean-kubernetes-pt</a>. Acessado em: 19 abr. 2020.</li>
+  <li>Kubernetes. cert-manager. Disponível em: <a href="https://cert-manager.io/docs/installation/kubernetes/">https://cert-manager.io/docs/installation/kubernetes/</a>. Acessado em: 19 abr. 2020.</li>
+  <li>HTTP01. cert-manager. Disponível em: <a href="https://letsencrypt.org/docs/challenge-types/#http-01-challenge">https://letsencrypt.org/docs/challenge-types/#http-01-challenge</a>. Acessado em: 19 abr. 2020.</li>
+  <li>Challenge Types. Let’s Encrypt. Disponível em: &lt;https://letsencrypt.org/docs/challenge-types/#http-01-challenge. Acessado em: 19 abr. 2020.</li>
+</ol>
+
+  </div><a class="u-url" href="/jekyll/update/2020/10/21/K8s-nfs-http.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Ana Amarante</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+         <!--  <li class="p-name">Ana Amarante</li> --><li><a class="u-email" href="mailto:">anapma22@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/anapma22"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">anapma22</span></a></li><li><a href="https://hub.docker.com/u/anapma22"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#dockerhub"></use></svg> <span class="username">anapma22</span></a></li><li><a href="https://www.linkedin.com/in/anapma22"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">anapma22</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Bacharel em Ciências e Tecnologia.    Graduanda em Eng. de Telecomunicações.     Especialista de TI - Redes e Infraestrutura.  </p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
