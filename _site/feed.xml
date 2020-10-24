@@ -1,4 +1,224 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="https://anapma22.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://anapma22.github.io/" rel="alternate" type="text/html" /><updated>2020-04-13T23:46:20-03:00</updated><id>https://anapma22.github.io/feed.xml</id><title type="html">Ana Amarante</title><subtitle>Bacharel em Ciências e Tecnologia.    Graduanda em Eng. de Telecomunicações.     Residente em TI - Redes e Infraestrutura.  </subtitle><entry><title type="html">Conceitos básicos do Kubernetes</title><link href="https://anapma22.github.io/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html" rel="alternate" type="text/html" title="Conceitos básicos do Kubernetes" /><published>2020-04-12T17:06:38-03:00</published><updated>2020-04-12T17:06:38-03:00</updated><id>https://anapma22.github.io/jekyll/update/2020/04/12/K8s-Conceitos-%20introdut%C3%B3rios</id><content type="html" xml:base="https://anapma22.github.io/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html">&lt;h2 id=&quot;introdução&quot;&gt;Introdução&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-10-24T02:02:48-03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Ana Amarante</title><subtitle>Bacharel em Ciências e Tecnologia.    Graduanda em Eng. de Telecomunicações.     Especialista de TI - Redes e Infraestrutura.  </subtitle><entry><title type="html">Tutorial de como instalar o minikube em uma instância do google cloud</title><link href="http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube.html" rel="alternate" type="text/html" title="Tutorial de como instalar o minikube em uma instância do google cloud" /><published>2020-10-20T17:06:38-03:00</published><updated>2020-10-20T17:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/10/20/K8s-Minikube.html">&lt;p&gt;Este documento foi desenvolvido em &lt;strong&gt;março de 2020&lt;/strong&gt;, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.&lt;/p&gt;
+
+&lt;p&gt;O objetivo deste tutorial é a instalação do minikube numa instância da Google Cloud Platform. 
+Este tutorial abordará desde o início a criação do projeto na Google Cloud Platform até a finalização da instalação do minikube. Os tópicos detalhados estão listados abaixo:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Definição teórica&lt;/li&gt;
+  &lt;li&gt;Criação do projeto&lt;/li&gt;
+  &lt;li&gt;Criação da instância de VM&lt;/li&gt;
+  &lt;li&gt;Instalação do kubectl&lt;/li&gt;
+  &lt;li&gt;Instalação do minikube&lt;/li&gt;
+  &lt;li&gt;Deploy&lt;/li&gt;
+  &lt;li&gt;Fontes&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;definição-teórica&quot;&gt;Definição teórica&lt;/h2&gt;
+&lt;p&gt;Mas afinal, o que é minikube?&lt;/p&gt;
+
+&lt;p&gt;Primeiro, vamos falar do Kubernets, ele foi criado e desenvolvido pelos engenheiros da Google, uma das pioneiras no desenvolvimento da tecnologia de containers. Em 2015 o Kubernetes foi doado para a “Cloud Native Computing foundation” e Linux Foundations, e se tornou um projeto Open Source.&lt;/p&gt;
+
+&lt;p&gt;Sua estrutura conta com o Master e os Workes. Onde o primeiro é responsável por controlar os nós do Kubernetes e os Workers são hosts do cluster (nós ou nodes), são as máquinas que realizam as tarefas solicitadas. Essa organização é bem parecida com o Docker Swarm.&lt;/p&gt;
+
+&lt;p&gt;Apesar dessa semelhança o setup do Kubernets é mais complexo do que o do Docker Swarm. Mesmo para um ambiente de testes, o mínimo exigido eram cinco máquinas para simular um cluster com três Masters e dois Workes/Nós. Para melhorar isso, a comunidade criou o minikube, que permite subir rápido um ambiente, no qual é possível conhecer e ver o Kubernetes funcionando.&lt;/p&gt;
+
+&lt;p&gt;O minikube simula um cluster real de um único nó, ou seja todos os processos e serviços que deveriam rodar no master e no slave rodam no node do minkube.&lt;/p&gt;
+
+&lt;h2 id=&quot;criação-do-projeto&quot;&gt;Criação do projeto&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;Acessar https://console.cloud.google.com/&lt;/li&gt;
+  &lt;li&gt;Clique em “Selecione um projeto” no canto superior esquerdo.&lt;/li&gt;
+  &lt;li&gt;Clique em “Novo projeto”. Digite o nome do projeto e finalize esta etapa.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;criação-da-instância-de-vm&quot;&gt;Criação da Instância de VM&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;No terminal digite $ssh-keygen no computador que será usado para acessar a instância de VM.&lt;/li&gt;
+  &lt;li&gt;Clique em “Compute Engine’’, na seção “Computação’’. Essa opção é encontrada no menu de navegação, localizado na lateral esquerda.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Caso não veja esse menu ele está oculto, clique nas três barras no canto superior esquerdo que o menu será mostrado.&lt;/p&gt;
+
+&lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/google_platform.png&quot; alt=&quot;Barras que ocultam / mostram o menu de navegação&quot; style=&quot;width:170px;height:40px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 1 - Google Cloud Platform. Fonte: console.cloud.google.com &lt;/figcaption&gt;
+&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;A mensagem que o Google Compute Engine está sendo preparado será exibida, poderá levar alguns minutos e após isso será possível criar a instância.&lt;/li&gt;
+  &lt;li&gt;Clique em “Criar’’, esta opção abre uma série de opções que podem ser personalizadas de acordo com o objetivo. Abaixo será mostrado apenas o que precisa ser alterado, as demais opções continuam com o valor padrão.
+    &lt;ul&gt;
+      &lt;li&gt;Nome: minikube.&lt;/li&gt;
+      &lt;li&gt;Tipo de máquina: n1-standard-2&lt;/li&gt;
+      &lt;li&gt;Disco de inicialização: CentOS 7.&lt;/li&gt;
+      &lt;li&gt;Clicar em: “Gerenciamento, segurança, discos, rede, locatário único“.
+        &lt;ul&gt;
+          &lt;li&gt;Clicar na aba “Segurança’’.&lt;/li&gt;
+          &lt;li&gt;Inserir a chave SSH pública gerada no ponto 4. Sempre é possível editar essas chaves, inserir novas ou remover alguma já configurada.&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Clicar em “Criar’’ para finalizar esta etapa.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;instalação-do-kubectl&quot;&gt;Instalação do kubectl&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;Ligar a instância e acessá-la.
+    &lt;ul&gt;
+      &lt;li&gt;Selecione a instância que foi criada, em seguida clique em “Iniciar’’ na parte superior.&lt;/li&gt;
+      &lt;li&gt;No terminal digite $ssh user@IPexterno, esse IP é mostrado depois que a instância foi iniciada.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Instalar kubectl.
+    &lt;ul&gt;
+      &lt;li&gt;Download do último release:
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Conceda a permissão de execução para o binário do kubectl
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; chmod +x ./kubectl
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Mova o binário para o PATH indicado:
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; sudo mv ./kubectl /usr/local/bin/kubectl
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Teste para verificar se a instalação ocorreu corretamente e na versão indicada:
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; kubectl version --client
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+      &lt;li&gt;A saída esperada está mostrada abaixo:&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;p align=&quot;center&quot;&gt;
+ &lt;img src=&quot;/images/minikube_1.png&quot; alt=&quot;Saída do comando para verificação do kubectl&quot; style=&quot;width:900px;height:75px;&quot; /&gt;
+ &lt;figcaption align=&quot;center&quot;&gt;Figura 2 - Saída do comando para verificação do kubectl. Fonte: Autoria própria &lt;/figcaption&gt;
+ &lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;instalação-do-minikube&quot;&gt;Instalação do minikube&lt;/h2&gt;
+&lt;p&gt;A documentação oficial foi usada como base, o link está no final deste documento.&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Download do binário:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \
+  &amp;amp;&amp;amp; chmod +x minikube
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Adicionar o binário para o PATH indicado:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sudo mkdir -p /usr/local/bin/
+sudo install minikube /usr/local/bin/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;O minikube precisa do docker:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sudo yum install docker
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;O –vm-driver=none precisa da permissão de root:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sudo su -
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;p&gt;Como estamos trabalhando em um ambiente de testes, iremos parar o firewalld e desabilitar o SELinux. Caso você esteja em um ambiente de produção é importante rever a documentação desses serviços para que eles fiquem habilitados e não abram falhas de segurança na sua implementação.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Parando o firewalld:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;systemctl stop firewalld
+systemctl disable firewalld
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Parando o SELinux:  em seguida alterar a linha “SELINUX=enforcing’ confirme está mostrado abaixo
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;vim /etc/sysconfig/selinux
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Altere a linha “SELINUX=enforcing” para:
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;SELINUX=disabled
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Agora é necessário reiniciar a máquina para que a alteração do SELinux seja feita.&lt;/li&gt;
+  &lt;li&gt;Caso você deseje conferir, após reiniciar a máquina digite $sestatus, você verá que o SELinux foi desabilitado.&lt;/li&gt;
+  &lt;li&gt;Verifique a instalação iniciando o minikube.  &lt;br /&gt;
+Execute o seguinte comando no seu terminal para concluir a criação do cluster, um cluster de nó único será criado. Observe que esse comando pode demorar um pouco:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;minikube start --vm-driver=none
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Após a finalização do minikube start, é hora de checar se o minikube está rodando conforme o esperado:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;minikube status
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;ul&gt;
+      &lt;li&gt;A saída esperada está mostrada abaixo:&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/minikube_2.png&quot; alt=&quot;Saída esperada do comando para verificação do minikube&quot; style=&quot;width:300px;height:100px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 3 - Saída esperada do comando para verificação do minikube. Fonte: Autoria própria &lt;/figcaption&gt;
+&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Como já foi dito o minikube simula um cluster real de um único nó, é possível vê esse comportamento por meio do comando $kubectl get nodes. A saída deve ser conforme está mostrado abaixo.
+    &lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/minikube_3.png&quot; alt=&quot;Saída esperada do comando para verificação de nodes do kubernetes&quot; style=&quot;width:290px;height:70px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 4 - Saída esperada do comando para verificação de nodes do kubernetes. Fonte: Autoria própria &lt;/figcaption&gt;
+&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;deployment&quot;&gt;Deployment&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;Agora, vamos subir um deployment do ngnix para rodar em nosso minikube.
+    &lt;ul&gt;
+      &lt;li&gt;Modo imperativo
+        &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl run ngnix --generator=run-pod/v1 --image ngnix
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Modo declarativo
+```
+apiVersion: v1
+kind: Pod
+metadata:
+name: ngnix-pod
+spec:
+containers:
+        &lt;ul&gt;
+          &lt;li&gt;name: ngnix-container
+image: ngnix
+```&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Vamos verificar o deployment, por meio do comando $kubectl get deployment. A saída deve ser similar a mostrada abaixo:
+    &lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/minikube_4.png&quot; alt=&quot;Saída esperada da verificação do deployment&quot; style=&quot;width:320px;height:60px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura 5 - Saída esperada da verificação do deployment. Fonte: Autoria própria &lt;/figcaption&gt;
+&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Verificar os pods:
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl get pods
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;ul&gt;
+      &lt;li&gt;A saída esperada está mostrada abaixo:&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;p align=&quot;center&quot;&gt;
+&lt;img src=&quot;/images/minikube_5.png&quot; alt=&quot;Saída esperada da verificação dos pods&quot; style=&quot;width:400px;height:70px;&quot; /&gt;
+&lt;figcaption align=&quot;center&quot;&gt;Figura6 - Saída esperada da verificação dos pods. Fonte: Autoria própria &lt;/figcaption&gt;
+&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt; &lt;/p&gt;
+
+&lt;h4 id=&quot;referências&quot;&gt;Referências&lt;/h4&gt;
+&lt;ol&gt;
+  &lt;li&gt;Tudo o que você precisa saber sobre Kubernetes – Parte 0. iMasters. Acessado em 23 de fev. 2020. Disponível em: &lt;a href=&quot;https://imasters.com.br/desenvolvimento/tudo-o-que-voce-precisa-saber-sobre-kubernetes-parte-01&quot;&gt;https://imasters.com.br/desenvolvimento/tudo-o-que-voce-precisa-saber-sobre-kubernetes-parte-01&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;Install Minikube. Kubernetes. Acessado em 23 de fev. 2020. Disponível em: &lt;a href=&quot;https://kubernetes.io/docs/tasks/tools/install-minikube/&quot;&gt;https://kubernetes.io/docs/tasks/tools/install-minikube/&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;
+    &lt;table&gt;
+      &lt;tbody&gt;
+        &lt;tr&gt;
+          &lt;td&gt;#01 - O que é o KUBERNETES e INSTALANDO o MINIKUBE&lt;/td&gt;
+          &lt;td&gt;Descomplicando o Kubernetes. Acessado em 23 de fev. 2020. Disponível em: &lt;a href=&quot;https://www.youtube.com/watch?v=pV0nkr61XP8&quot;&gt;https://www.youtube.com/watch?v=pV0nkr61XP8&lt;/a&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;</content><author><name></name></author><summary type="html">Este documento foi desenvolvido em março de 2020, durante a disciplina DevOps na Residência em tecnologia da informação aplicada à área jurídica - turma JF/IMD, na área de especialidade de Redes e Infraestrutura, ministrado pelo Prof Me. André Solino.</summary></entry><entry><title type="html">Conceitos básicos do Kubernetes</title><link href="http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html" rel="alternate" type="text/html" title="Conceitos básicos do Kubernetes" /><published>2020-04-12T17:06:38-03:00</published><updated>2020-04-12T17:06:38-03:00</updated><id>http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-%20introdut%C3%B3rios</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/04/12/K8s-Conceitos-introdut%C3%B3rios.html">&lt;h2 id=&quot;introdução&quot;&gt;Introdução&lt;/h2&gt;
 
 &lt;p&gt;Este documento foi desenvolvido durante a disciplina DevOps na Residência em TI aplicada à área jurídica - turma JF/IMD, na especialidade de Redes e Infraestrutura. O docente foi o Prof Me. André Solino.&lt;/p&gt;
 
