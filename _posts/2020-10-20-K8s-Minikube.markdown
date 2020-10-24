@@ -175,5 +175,5 @@ spec:
 
 #### Referências
 1. Tudo o que você precisa saber sobre Kubernetes – Parte 0. iMasters. Acessado em 23 de fev. 2020. Disponível em: <https://imasters.com.br/desenvolvimento/tudo-o-que-voce-precisa-saber-sobre-kubernetes-parte-01>. 
-2. Install Minikube. Kubernetes. Acessado em 23 de fev. 2020. Disponível em: <https://kubernetes.io/docs/tasks/tools/install-minikube/>
-3. #01 - O que é o KUBERNETES e INSTALANDO o MINIKUBE | Descomplicando o Kubernetes. Acessado em 23 de fev. 2020. Disponível em: <https://www.youtube.com/watch?v=pV0nkr61XP8>
+2. Install Minikube. Kubernetes. Acessado em 23 de fev. 2020. Disponível em: <https://kubernetes.io/docs/tasks/tools/install-minikube/>.
+3. 01 - O que é o KUBERNETES e INSTALANDO o MINIKUBE. Descomplicando o Kubernetes. Acessado em 23 de fev. 2020. Disponível em: <https://www.youtube.com/watch?v=pV0nkr61XP8>
